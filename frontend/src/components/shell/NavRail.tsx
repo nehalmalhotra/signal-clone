@@ -12,6 +12,7 @@ export type RailTab = "chats" | "calls" | "stories" | "settings";
 interface Props {
   active: RailTab;
   onSelect: (tab: RailTab) => void;
+  /** Clicking the avatar opens Settings, like Signal's own nav rail (D-39: logout moved there). */
   onOpenProfileMenu: () => void;
 }
 
