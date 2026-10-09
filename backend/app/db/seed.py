@@ -104,9 +104,14 @@ def _insert_conversation(conn: sqlite3.Connection, conv: dict, user_ids: dict[st
         left_at = _ago(now_ms, m["left"]) if "left" in m else None
         windows[user_ids[m["user"]]] = (joined_at, left_at)
         conn.execute(
-            """INSERT INTO conversation_members (conversation_id, user_id, role, joined_at, left_at)
-               VALUES (?, ?, ?, ?, ?)""",
-            (conv_id, user_ids[m["user"]], m.get("role", "member"), joined_at, left_at),
+            "INSERT INTO conversation_members (conversation_id, user_id, role) VALUES (?, ?, ?)",
+            (conv_id, user_ids[m["user"]], m.get("role", "member")),
+        )
+        # One stint per seeded member; times live only here (D-25).
+        conn.execute(
+            """INSERT INTO membership_periods (conversation_id, user_id, joined_at, left_at)
+               VALUES (?, ?, ?, ?)""",
+            (conv_id, user_ids[m["user"]], joined_at, left_at),
         )
 
     read_upto = {user_ids[h]: i for h, i in conv.get("read_upto", {}).items()}

@@ -58,18 +58,38 @@ CREATE TABLE IF NOT EXISTS conversations (
     CHECK (type = 'direct' OR (name IS NOT NULL AND length(trim(name)) > 0))
 );
 
+-- Who has ever belonged to a conversation, and their CURRENT role. It deliberately holds no
+-- times: when someone was inside lives only in membership_periods, so the two can't disagree.
 CREATE TABLE IF NOT EXISTS conversation_members (
     conversation_id  INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
     user_id          INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     role             TEXT    NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member')),
-    joined_at        INTEGER NOT NULL,
-    -- NULL = active. Removal is a soft delete so the user keeps read-only history (D-10).
-    left_at          INTEGER,
     PRIMARY KEY (conversation_id, user_id)
 );
 -- The PK starts with conversation_id, so it can't serve "all chats of user X",
 -- which is the chat-list query.
 CREATE INDEX IF NOT EXISTS idx_members_user ON conversation_members(user_id, conversation_id);
+
+-- SOURCE OF TRUTH for join/leave times (D-25). One row per stint: someone removed and later
+-- re-added has two rows. A member is "active" iff they have a row with left_at IS NULL.
+-- A message is visible to a user iff it was sent inside one of their stints, which is what
+-- keeps new members from reading older history and re-added members from reading the gap.
+-- Removal is still a soft delete (D-10): the closed stint stays, so history stays readable.
+CREATE TABLE IF NOT EXISTS membership_periods (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    conversation_id  INTEGER NOT NULL,
+    user_id          INTEGER NOT NULL,
+    joined_at        INTEGER NOT NULL,
+    left_at          INTEGER,
+    FOREIGN KEY (conversation_id, user_id)
+        REFERENCES conversation_members(conversation_id, user_id) ON DELETE CASCADE,
+    CHECK (left_at IS NULL OR left_at >= joined_at)
+);
+-- At most one open stint per person per chat; makes "add someone twice" impossible at DB level.
+CREATE UNIQUE INDEX IF NOT EXISTS uq_one_open_period
+    ON membership_periods(conversation_id, user_id) WHERE left_at IS NULL;
+-- Visibility check and "my latest stint in each chat" both look up by (user, conversation).
+CREATE INDEX IF NOT EXISTS idx_periods_user_conv ON membership_periods(user_id, conversation_id);
 
 CREATE TABLE IF NOT EXISTS messages (
     id               INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -6,14 +6,7 @@ Signal encrypts each message to the people who are members at that moment, so:
   sent while they were out.
 """
 
-import pytest
-
-from tests.conftest import CARMEN, HANA, chats, login, user_id
-
-# Known gap found in Phase 3 planning: history is only cut at left_at, never at joined_at.
-# strict=True: once fixed these XPASS and fail the run, forcing the marker to be removed.
-KNOWN_LEAK = pytest.mark.xfail(strict=True, reason="history visibility ignores joined_at / earlier windows")
-
+from tests.conftest import CARMEN, DEV, HANA, chats, login, user_id
 
 def _bodies_and_actions(client, conv_id, headers):
     page = client.get(f"/conversations/{conv_id}/messages", params={"limit": 100}, headers=headers).json()
@@ -26,7 +19,6 @@ def _send(client, conv_id, headers, text):
     assert r.status_code == 201
 
 
-@KNOWN_LEAK
 def test_new_member_sees_nothing_from_before_they_joined(client, alice, ticking_clock):
     hike = chats(client, alice)["Weekend Hike"]["id"]
     _send(client, hike, alice, "before Hana")
@@ -46,7 +38,6 @@ def test_new_member_chat_list_preview_is_the_add_line_before_anyone_speaks(clien
     assert preview["kind"] == "group_update" and preview["meta"]["action"] == "member_added"
 
 
-@KNOWN_LEAK
 def test_re_added_member_keeps_old_history_but_not_the_gap(client, alice, ticking_clock):
     hike = chats(client, alice)["Weekend Hike"]["id"]
     carmen_h, carmen = login(client, CARMEN), user_id(client, alice, CARMEN)
@@ -60,3 +51,24 @@ def test_re_added_member_keeps_old_history_but_not_the_gap(client, alice, tickin
     seen = _bodies_and_actions(client, hike, carmen_h)
     assert seen == seen_before + ["member_removed", "member_added", "after Carmen returned"]
     assert "while Carmen was out" not in seen
+
+
+def test_seeded_member_who_joined_mid_conversation_starts_at_their_add_line(client):
+    dev = login(client, DEV)
+    hike = chats(client, dev)["Weekend Hike"]["id"]
+    seen = _bodies_and_actions(client, hike, dev)
+    assert seen[0] == "member_added"  # the six messages before Dev joined stay hidden
+    assert len(seen) == 5
+    # Alice (a member since the start) still sees everything.
+    alice = login(client, "+15550100")
+    assert len(_bodies_and_actions(client, hike, alice)) == 11
+
+
+def test_removed_then_re_added_member_sees_both_stints_in_order(client, alice, ticking_clock):
+    hike = chats(client, alice)["Weekend Hike"]["id"]
+    bob_h, bob = login(client, "+15550101"), user_id(client, alice, "+15550101")
+    client.delete(f"/groups/{hike}/members/{bob}", headers=alice)
+    client.post(f"/groups/{hike}/members", json={"user_ids": [bob]}, headers=alice)
+    ids = [m["id"] for m in client.get(f"/conversations/{hike}/messages", params={"limit": 100},
+                                       headers=bob_h).json()["messages"]]
+    assert ids == sorted(ids) and len(ids) == 11 + 2  # all history + "removed" + "added"

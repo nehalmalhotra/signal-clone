@@ -46,17 +46,16 @@ def load_by_ids(conn: sqlite3.Connection, ids: list[int], viewer_id: int) -> dic
 def list_messages(conn: sqlite3.Connection, conv_id: int, viewer_id: int,
                   before_id: int | None, limit: int) -> tuple[list[dict], bool]:
     """One page of history, newest page first when before_id is omitted."""
-    member = membership.require_member(conn, conv_id, viewer_id)
-    sql, params = f"{_SELECT} WHERE m.conversation_id = ?", [conv_id]
+    membership.require_member(conn, conv_id, viewer_id)
+    # Only messages sent during one of the viewer's stints: nothing from before they joined,
+    # nothing from while they were out, nothing after they were removed.
+    sql = f"{_SELECT} WHERE m.conversation_id = :conv AND {membership.VISIBLE_TO_VIEWER}"
+    params = {"conv": conv_id, "viewer": viewer_id, "limit": limit + 1}
     if before_id is not None:
-        sql += " AND m.id < ?"
-        params.append(before_id)
-    if member["left_at"] is not None:
-        # A removed member keeps what they saw, but nothing sent after they left.
-        sql += " AND m.sent_at <= ?"
-        params.append(member["left_at"])
+        sql += " AND m.id < :before"
+        params["before"] = before_id
     # Fetch one extra row to learn whether an older page exists, without a second COUNT query.
-    rows = conn.execute(sql + " ORDER BY m.id DESC LIMIT ?", (*params, limit + 1)).fetchall()
+    rows = conn.execute(sql + " ORDER BY m.id DESC LIMIT :limit", params).fetchall()
     has_more = len(rows) > limit
     page = [to_message(r, viewer_id) for r in rows[:limit]]
     page.reverse()

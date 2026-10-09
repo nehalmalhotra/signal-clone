@@ -34,12 +34,16 @@ def create_group(conn: sqlite3.Connection, creator_id: int, name: str, member_id
         )
         conv_id = cur.lastrowid
         conn.execute(
-            "INSERT INTO conversation_members (conversation_id, user_id, role, joined_at) VALUES (?, ?, 'admin', ?)",
-            (conv_id, creator_id, now),
+            "INSERT INTO conversation_members (conversation_id, user_id, role) VALUES (?, ?, 'admin')",
+            (conv_id, creator_id),
         )
         conn.executemany(
-            "INSERT INTO conversation_members (conversation_id, user_id, joined_at) VALUES (?, ?, ?)",
-            [(conv_id, uid, now) for uid in others],
+            "INSERT INTO conversation_members (conversation_id, user_id) VALUES (?, ?)",
+            [(conv_id, uid) for uid in others],
+        )
+        conn.executemany(
+            "INSERT INTO membership_periods (conversation_id, user_id, joined_at) VALUES (?, ?, ?)",
+            [(conv_id, uid, now) for uid in [creator_id, *others]],
         )
         messages.add_group_update(conn, conv_id, creator_id, {"action": "group_created"}, now)
         messages.add_group_update(conn, conv_id, creator_id,
@@ -59,18 +63,18 @@ def add_members(conn: sqlite3.Connection, conv_id: int, actor_id: int, user_ids:
         for uid in dict.fromkeys(user_ids):
             existing = membership.get_membership(conn, conv_id, uid)
             if existing is None:
-                conn.execute(
-                    "INSERT INTO conversation_members (conversation_id, user_id, joined_at) VALUES (?, ?, ?)",
-                    (conv_id, uid, now))
-            elif existing["left_at"] is not None:
-                # Re-adding a removed member: same row, back to a plain member, fresh join time
-                # (so they get no receipts for what was sent while they were out).
-                conn.execute(
-                    """UPDATE conversation_members SET left_at = NULL, role = 'member', joined_at = ?
-                       WHERE conversation_id = ? AND user_id = ?""",
-                    (now, conv_id, uid))
-            else:
+                conn.execute("INSERT INTO conversation_members (conversation_id, user_id) VALUES (?, ?)",
+                             (conv_id, uid))
+            elif existing["left_at"] is None:
                 continue  # already in the group
+            else:
+                # Re-adding a removed member: back to a plain member. The old closed stint stays,
+                # and the new stint below starts now, so they see their old history but not
+                # what was said while they were out.
+                conn.execute("UPDATE conversation_members SET role = 'member' WHERE conversation_id = ? AND user_id = ?",
+                             (conv_id, uid))
+            conn.execute("INSERT INTO membership_periods (conversation_id, user_id, joined_at) VALUES (?, ?, ?)",
+                         (conv_id, uid, now))
             added.append(uid)
         if added:
             messages.add_group_update(conn, conv_id, actor_id,
@@ -94,13 +98,14 @@ def remove_member(conn: sqlite3.Connection, conv_id: int, actor_id: int, target_
         raise Conflict("Make someone else an admin first")
 
     # Same timestamp for left_at and the timeline entry, so the removed person still sees
-    # the "removed" line (history is cut at sent_at <= left_at).
+    # the "removed" line (the stint closes at left_at and history is visible while sent_at <= left_at).
     now = clock.now_ms()
     meta = ({"action": "member_left"} if leaving
             else {"action": "member_removed", "target_ids": [target_id]})
     with conn:
         conn.execute(
-            "UPDATE conversation_members SET left_at = ? WHERE conversation_id = ? AND user_id = ?",
+            """UPDATE membership_periods SET left_at = ?
+               WHERE conversation_id = ? AND user_id = ? AND left_at IS NULL""",
             (now, conv_id, target_id))
         messages.add_group_update(conn, conv_id, actor_id, meta, now)
 
@@ -127,7 +132,9 @@ def set_role(conn: sqlite3.Connection, conv_id: int, actor_id: int, target_id: i
 
 def _has_admin(conn: sqlite3.Connection, conv_id: int, excluding: int) -> bool:
     return conn.execute(
-        """SELECT 1 FROM conversation_members
-           WHERE conversation_id = ? AND role = 'admin' AND left_at IS NULL AND user_id <> ?""",
+        """SELECT 1 FROM conversation_members cm
+           JOIN membership_periods p ON p.conversation_id = cm.conversation_id
+                                    AND p.user_id = cm.user_id AND p.left_at IS NULL
+           WHERE cm.conversation_id = ? AND cm.role = 'admin' AND cm.user_id <> ?""",
         (conv_id, excluding),
     ).fetchone() is not None

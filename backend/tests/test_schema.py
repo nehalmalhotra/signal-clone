@@ -101,19 +101,49 @@ def test_message_ids_follow_time_across_all_chats(conn):
 
 
 def test_receipts_only_for_active_non_sender_members(conn):
+    # A receipt is legitimate only if the message was sent while the recipient was inside the chat
+    # (inside one of their membership_periods, and strictly before they left).
     bad = conn.execute("""
         SELECT r.message_id, r.recipient_id
         FROM message_receipts r
         JOIN messages m ON m.id = r.message_id
-        LEFT JOIN conversation_members cm
-               ON cm.conversation_id = m.conversation_id AND cm.user_id = r.recipient_id
         WHERE r.recipient_id = m.sender_id
            OR m.kind <> 'text'
-           OR cm.user_id IS NULL
-           OR cm.joined_at > m.sent_at
-           OR (cm.left_at IS NOT NULL AND cm.left_at <= m.sent_at)
+           OR NOT EXISTS (
+               SELECT 1 FROM membership_periods p
+               WHERE p.conversation_id = m.conversation_id AND p.user_id = r.recipient_id
+                 AND m.sent_at >= p.joined_at AND (p.left_at IS NULL OR m.sent_at < p.left_at))
     """).fetchall()
     assert bad == []
+
+
+def test_every_member_has_a_period_and_at_most_one_is_open(conn):
+    no_period = conn.execute("""
+        SELECT cm.conversation_id, cm.user_id FROM conversation_members cm
+        WHERE NOT EXISTS (SELECT 1 FROM membership_periods p
+                          WHERE p.conversation_id = cm.conversation_id AND p.user_id = cm.user_id)
+    """).fetchall()
+    assert no_period == []
+
+
+def test_second_open_period_for_the_same_member_is_rejected(conn):
+    row = conn.execute("SELECT conversation_id, user_id FROM membership_periods WHERE left_at IS NULL").fetchone()
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute("INSERT INTO membership_periods (conversation_id, user_id, joined_at) VALUES (?, ?, 1)",
+                     (row["conversation_id"], row["user_id"]))
+
+
+def test_period_cannot_end_before_it_starts(conn):
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute("UPDATE membership_periods SET left_at = joined_at - 1 WHERE left_at IS NULL")
+
+
+def test_period_needs_a_member_row(conn):
+    # Hana belongs to no chat, so a period for her has no conversation_members row to point at.
+    hana = user_id(conn, "Hana")
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute("INSERT INTO membership_periods (conversation_id, user_id, joined_at) VALUES (1, ?, 1)",
+                     (hana,))
 
 
 def test_reads_are_in_order(conn):
@@ -183,6 +213,15 @@ def test_history_page_uses_message_index_without_sorting(conn):
                        "ORDER BY id DESC LIMIT 50", (1, 1000))
     assert "idx_messages_conv" in plan
     assert "TEMP B-TREE" not in plan  # no separate sort step
+
+
+def test_visibility_filter_is_index_served_and_needs_no_sort(conn):
+    from app.services import membership
+    sql = (f"SELECT * FROM messages m WHERE m.conversation_id = :conv AND {membership.VISIBLE_TO_VIEWER} "
+           "ORDER BY m.id DESC LIMIT 51")
+    plan = " ".join(r["detail"] for r in conn.execute("EXPLAIN QUERY PLAN " + sql, {"conv": 1, "viewer": 1}))
+    assert "idx_messages_conv" in plan and "idx_periods_user_conv" in plan
+    assert "TEMP B-TREE" not in plan
 
 
 def test_unread_counts_use_receipt_index(conn):

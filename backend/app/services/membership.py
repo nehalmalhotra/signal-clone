@@ -1,14 +1,31 @@
-"""Who may do what inside a conversation. Every other service starts here."""
+"""Who may do what inside a conversation. Every other service starts here.
+
+Join/leave times live only in membership_periods (D-25). A person's *current* state is their
+latest period: open (left_at NULL) = active member, closed = removed.
+"""
 
 import sqlite3
 
 from app.errors import Forbidden, NotFound
 
+# Visibility rule shared by history, last-message previews and the chat list: a message is
+# visible to :viewer only if it was sent inside one of their stints in that conversation.
+# `m` must be the messages table alias in the surrounding query.
+VISIBLE_TO_VIEWER = """EXISTS (
+    SELECT 1 FROM membership_periods v
+    WHERE v.conversation_id = m.conversation_id AND v.user_id = :viewer
+      AND m.sent_at >= v.joined_at AND (v.left_at IS NULL OR m.sent_at <= v.left_at))"""
+
 
 def get_membership(conn: sqlite3.Connection, conv_id: int, user_id: int) -> sqlite3.Row | None:
+    """Role plus the latest stint's joined_at/left_at, or None if they were never a member."""
     return conn.execute(
-        """SELECT cm.*, c.type FROM conversation_members cm
+        """SELECT cm.*, c.type, p.joined_at, p.left_at
+           FROM conversation_members cm
            JOIN conversations c ON c.id = cm.conversation_id
+           JOIN membership_periods p ON p.id = (
+               SELECT MAX(id) FROM membership_periods
+               WHERE conversation_id = cm.conversation_id AND user_id = cm.user_id)
            WHERE cm.conversation_id = ? AND cm.user_id = ?""",
         (conv_id, user_id),
     ).fetchone()
@@ -38,5 +55,5 @@ def require_admin(conn: sqlite3.Connection, conv_id: int, user_id: int) -> sqlit
 
 def active_member_ids(conn: sqlite3.Connection, conv_id: int) -> list[int]:
     return [r["user_id"] for r in conn.execute(
-        "SELECT user_id FROM conversation_members WHERE conversation_id = ? AND left_at IS NULL",
+        "SELECT user_id FROM membership_periods WHERE conversation_id = ? AND left_at IS NULL",
         (conv_id,))]

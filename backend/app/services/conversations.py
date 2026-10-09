@@ -4,19 +4,25 @@ from app import clock
 from app.errors import BadRequest
 from app.services import membership, messages, users
 
-# One query builds the whole chat list. The three subqueries are the "last message", "unread"
-# and "member count" columns; each is served by an index (idx_messages_conv,
-# idx_receipts_recipient, the members primary key).
-_LIST_SQL = """
-SELECT c.*, cm.role, cm.left_at,
-  (SELECT MAX(m.id) FROM messages m
-    WHERE m.conversation_id = c.id AND (cm.left_at IS NULL OR m.sent_at <= cm.left_at)) AS last_id,
+# One query builds the whole chat list. p is the viewer's LATEST stint in each chat (open =
+# still a member, closed = removed, D-25). The subqueries are the "last message", "unread" and
+# "member count" columns. The last-message subquery walks the chat's messages newest-first
+# (idx_messages_conv) and stops at the first one the viewer is allowed to see.
+_LIST_SQL = f"""
+SELECT c.*, cm.role, p.left_at,
+  (SELECT m.id FROM messages m
+    WHERE m.conversation_id = c.id AND {membership.VISIBLE_TO_VIEWER}
+    ORDER BY m.id DESC LIMIT 1) AS last_id,
   (SELECT COUNT(*) FROM message_receipts r JOIN messages m ON m.id = r.message_id
-    WHERE m.conversation_id = c.id AND r.recipient_id = :uid AND r.status < 3) AS unread,
-  (SELECT COUNT(*) FROM conversation_members x
+    WHERE m.conversation_id = c.id AND r.recipient_id = :viewer AND r.status < 3) AS unread,
+  (SELECT COUNT(*) FROM membership_periods x
     WHERE x.conversation_id = c.id AND x.left_at IS NULL) AS member_count
-FROM conversation_members cm JOIN conversations c ON c.id = cm.conversation_id
-WHERE cm.user_id = :uid
+FROM conversation_members cm
+JOIN conversations c ON c.id = cm.conversation_id
+JOIN membership_periods p ON p.id = (
+    SELECT MAX(id) FROM membership_periods
+    WHERE conversation_id = c.id AND user_id = :viewer)
+WHERE cm.user_id = :viewer
 """
 
 
@@ -35,9 +41,11 @@ def get_summary(conn: sqlite3.Connection, conv_id: int, user_id: int) -> dict:
 def get_detail(conn: sqlite3.Connection, conv_id: int, user_id: int) -> dict:
     summary = get_summary(conn, conv_id, user_id)
     rows = conn.execute(
-        """SELECT u.*, cm.role, cm.joined_at FROM conversation_members cm
+        """SELECT u.*, cm.role, p.joined_at FROM conversation_members cm
            JOIN users u ON u.id = cm.user_id
-           WHERE cm.conversation_id = ? AND cm.left_at IS NULL
+           JOIN membership_periods p ON p.conversation_id = cm.conversation_id
+                                    AND p.user_id = cm.user_id AND p.left_at IS NULL
+           WHERE cm.conversation_id = ?
            ORDER BY cm.role = 'admin' DESC, u.given_name COLLATE NOCASE""",
         (conv_id,),
     ).fetchall()
@@ -67,9 +75,11 @@ def get_or_create_direct(conn: sqlite3.Connection, user_id: int, other_id: int) 
                     "INSERT INTO conversations (type, direct_key, created_by, created_at) VALUES ('direct', ?, ?, ?)",
                     (key, user_id, now),
                 )
+                pair = [(cur.lastrowid, user_id), (cur.lastrowid, other_id)]
+                conn.executemany("INSERT INTO conversation_members (conversation_id, user_id) VALUES (?, ?)", pair)
                 conn.executemany(
-                    "INSERT INTO conversation_members (conversation_id, user_id, joined_at) VALUES (?, ?, ?)",
-                    [(cur.lastrowid, user_id, now), (cur.lastrowid, other_id, now)],
+                    "INSERT INTO membership_periods (conversation_id, user_id, joined_at) VALUES (?, ?, ?)",
+                    [(c, u, now) for c, u in pair],
                 )
             conv_id = cur.lastrowid
         except sqlite3.IntegrityError:
@@ -82,7 +92,7 @@ def get_or_create_direct(conn: sqlite3.Connection, user_id: int, other_id: int) 
 
 
 def _summaries(conn: sqlite3.Connection, user_id: int, sql: str, extra: dict | None = None) -> list[dict]:
-    rows = conn.execute(sql, {"uid": user_id, **(extra or {})}).fetchall()
+    rows = conn.execute(sql, {"viewer": user_id, **(extra or {})}).fetchall()
     last = messages.load_by_ids(conn, [r["last_id"] for r in rows if r["last_id"]], user_id)
     peers = _peers(conn, [r["id"] for r in rows if r["type"] == "direct"], user_id)
 
