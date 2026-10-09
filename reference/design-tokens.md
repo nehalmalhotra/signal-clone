@@ -483,3 +483,5 @@ the icon alone. The words above appear only in the message **Info** (detail) vie
 
 ## Limits (non-visual)
 - Group name max length: 32 characters. Source: Signal-Desktop `ts/components/GroupTitleInput.dom.tsx` (`maxLengthCount={32}`).
+- Typing indicator, sender: send "started" on first keystroke, re-send every 10 s while typing continues, send "stopped" after 3 s with no keystroke. Source: Signal-Desktop `ts/models/conversations.preload.ts` (`setTypingRefreshTimer` 10*1000, `setTypingPauseTimer` 3*1000).
+- Typing indicator, receiver: hide after 15 s without a refresh; tracked per sender *device*. Source: same file, `contactTypingTimers` (15*1000, key `${sender.id}.${senderDevice}`).
