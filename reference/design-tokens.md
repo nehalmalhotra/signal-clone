@@ -672,3 +672,104 @@ I did not trace how the composer gets disabled elsewhere (e.g. in `CompositionIn
 | Vertical padding | 16px top and bottom |
 | Type | `type-body-small`, colour `text-secondary` |
 | Test id | `CompositionArea--group-terminated` |
+
+## 9. Keyboard shortcuts (added Phase 6)
+
+Source: `ts/components/ShortcutGuide.dom.tsx` (lists at lines 72-369, rendering at 444+; modal wrapper `ShortcutGuideModal.dom.tsx`). Labels are from `MSGS` (`icu:Keyboard--*`). Story: `components-shortcutguide--default` (Windows/Linux keys) and `components-shortcutguide--mac`. Modal title: "Keyboard Shortcuts". The guide has four sections: Navigation, Messages, Composer, Calling.
+
+Key names in the source: `commandOrCtrl` = Cmd on macOS, Ctrl elsewhere; `optionOrAlt` = Option / Alt; `ctrlOrAlt` = Ctrl on macOS, Alt elsewhere (calling accept/start/end shortcuts). Two combos on one row means either works.
+
+### 9.1 Navigation (`getNavigationShortcuts`, lines 72-199)
+| Action | Keys |
+|---|---|
+| Navigate by section | Cmd/Ctrl+T, or Cmd/Ctrl+F6 |
+| Previous chat | Opt/Alt+↑, or Ctrl+Shift+Tab |
+| Next chat | Opt/Alt+↓, or Ctrl+Tab |
+| Previous unread chat | Opt/Alt+Shift+↑ |
+| Next unread chat | Opt/Alt+Shift+↓ |
+| Jump to chat | Cmd/Ctrl+1 to 9 |
+| Focus oldest unread or last message | Cmd/Ctrl+J |
+| Preferences | Cmd/Ctrl+, |
+| Open chat menu | Cmd/Ctrl+Shift+L |
+| Start new chat | Cmd/Ctrl+N |
+| Search | Cmd/Ctrl+F |
+| Search in chat | Cmd/Ctrl+Shift+F |
+| Focus composer | Cmd/Ctrl+Shift+T |
+| Open All Media view | Cmd/Ctrl+Shift+M |
+| Open emoji chooser | Cmd/Ctrl+Shift+J |
+| Open sticker chooser | Cmd/Ctrl+Shift+O |
+| Open GIF chooser | Cmd/Ctrl+Shift+G |
+| Begin recording voice note | Cmd/Ctrl+Shift+Y |
+| Archive chat | Cmd/Ctrl+Shift+A |
+| Unarchive chat | Cmd/Ctrl+Shift+U |
+| Scroll to top of list | Cmd/Ctrl+↑ |
+| Scroll to bottom of list | Cmd/Ctrl+↓ |
+| Close current chat | Cmd/Ctrl+Shift+C |
+
+### 9.2 Messages (`getMessageShortcuts`, lines 201-247)
+| Action | Keys |
+|---|---|
+| Default action for selected message | Enter |
+| View selected message details | Cmd/Ctrl+D |
+| Toggle reply to selected message | Cmd/Ctrl+Shift+R |
+| Toggle emoji-reaction picker for selected message | Cmd/Ctrl+Shift+E |
+| Save attachment from selected message | Cmd/Ctrl+S |
+| Delete selected messages | Cmd/Ctrl+Shift+D |
+| Forward selected messages | Cmd/Ctrl+Shift+S |
+| Open context menu for selected message | macOS: Cmd+F12; other: Shift+F10 |
+
+### 9.3 Composer (`getComposerShortcuts`, lines 249-314)
+| Action | Keys |
+|---|---|
+| Add newline to message | Shift+Enter |
+| Expand composer | Cmd/Ctrl+Shift+K |
+| Send (in expanded composer) | Cmd/Ctrl+Enter |
+| Attach file | Cmd/Ctrl+U |
+| Remove draft link preview | Cmd/Ctrl+P |
+| Remove all draft attachments | Cmd/Ctrl+Shift+P |
+| Edit the previous message | ↑ |
+| Bold / Italic | Cmd/Ctrl+B / Cmd/Ctrl+I |
+| Strikethrough | Cmd/Ctrl+Shift+X |
+| Monospace | Cmd/Ctrl+E |
+| Spoiler | Cmd/Ctrl+Shift+B |
+
+### 9.4 Calling (`getCallingShortcuts`, lines 316-369)
+| Action | Keys |
+|---|---|
+| Toggle mute | Shift+M |
+| Toggle video | Shift+V |
+| Toggle expanded preview | Shift+P |
+| Raise or lower hand (group calls) | Shift+H |
+| Answer call with video | CtrlOrAlt+Shift+V |
+| Answer call without video | CtrlOrAlt+Shift+A |
+| Decline call | CtrlOrAlt+Shift+D |
+| Start voice call | CtrlOrAlt+Shift+C |
+| Start video call | CtrlOrAlt+Shift+Y |
+| End call | CtrlOrAlt+Shift+E |
+
+### 9.5 Screenshots added in Phase 6
+`toast`, `settings-appearance`, `settings-privacy`, `settings-notifications`, `stories` (each with a `-dark` twin). Stories: `components-toast--defaults` (toast text "This is a toast", top-left of the page in the story), `components-preferences--appearance`, `components-preferences--privacy`, `components-preferences--notifications`, `components-storiestab--blank`. No Calls tab story exists, so `calls.png` was not captured.
+
+### 9.6 Calls tab strings (strings only; no screenshot, no story exists)
+Sources: `ts/components/CallsTab.dom.tsx`, `ts/components/CallsList.dom.tsx`, `_locales/en/messages.json` (keys `icu:CallsTab__*` around line 11149-11197, `icu:CallsList__*` around line 11221).
+
+| Where it shows | Text | Key | Source |
+|---|---|---|---|
+| Left-pane header title | "Calls" | `icu:CallsTab__HeaderTitle--CallsList` | `CallsTab.dom.tsx:207` |
+| Header title on the New Call view | "New Call" | `icu:CallsTab__HeaderTitle--NewCall` | `CallsTab.dom.tsx:208` |
+| Header button label | "New Call" | `icu:CallsTab__NewCallActionLabel` | `CallsTab.dom.tsx:232` |
+| Header menu button label | "More actions" | `icu:CallsTab__MoreActionsLabel` | `CallsTab.dom.tsx:241` |
+| Header menu item | "Clear call history" | `icu:CallsTab__ClearCallHistoryLabel` | `CallsTab.dom.tsx:249` |
+| **Left pane, no call history (empty state title)** | "No calls" | `icu:CallsList__EmptyState--noQuery__title` | `CallsList.dom.tsx:1040` |
+| **Left pane, no call history (subtitle)** | "Recent calls will appear here." | `icu:CallsList__EmptyState--noQuery__subtitle` | `CallsList.dom.tsx:1041` |
+| **Right pane, nothing selected** | "Click [new-call icon] to start a new voice or video call." | `icu:CallsTab__EmptyStateText--with-icon-2` | `CallsTab.dom.tsx:311` |
+| Search placeholder | "Search" ("Search missed calls" when the missed filter is on) | `icu:CallsList__SearchInputPlaceholder`, `...--missed-calls` | `CallsList.dom.tsx:1049-1050` |
+| Missed filter toggle | "Filter by missed"; header "Filtered by missed"; "Clear filter" | `icu:CallsList__ToggleFilterByMissedLabel`, `icu:CallsList__FilteredByMissedHeader`, `icu:clearFilterButton` | `CallsList.dom.tsx:768-785, 1058` |
+| Empty results: missed filter only | "No missed calls" | `icu:CallsList__EmptyState--missedCalls` | `CallsList.dom.tsx:747` |
+| Empty results: search only | "No results for “{query}”" | `icu:CallsList__EmptyState--hasQuery` | `CallsList.dom.tsx:745` |
+| Empty results: search + missed | "No results for “{query}” in missed calls" | `icu:CallsList__EmptyState--hasQueryAndMissedCalls` | `CallsList.dom.tsx:743` |
+| Top of list | "Create a Call Link" | `icu:CallsList__CreateCallLink` | `CallsList.dom.tsx:727` |
+| Row status text | Missed / Declined / Call link / Outgoing / Incoming / Active | `icu:CallsList__ItemCallInfo--*` | `CallsList.dom.tsx:853-962` |
+| Clear-history dialog | Title "Clear call history?"; body "This will permanently delete all call history."; with call links: "...Call links you’ve created will no longer work for people who have them."; button "Clear" | `icu:CallsTab__ConfirmClearCallHistory__*` | `CallsTab.dom.tsx:348-360` |
+
+The empty-state title/subtitle show only when the list is empty and no search or filter is active (`CallsList.dom.tsx:1039`).
