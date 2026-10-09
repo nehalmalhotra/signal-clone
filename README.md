@@ -172,11 +172,22 @@ bodies and typed WS frames are documented in each router's Pydantic models and i
   container differs. Chosen to ship correct admin/leave functionality inside a tight time budget
   rather than build a new layout primitive from scratch. See DECISIONS.md D-62.
 - **Settings is scoped to Profile + Appearance (Theme only)**, with Privacy/Notifications/
-  Calls/Stories present as "Coming Soon" rather than Signal's full settings sidebar (Account,
-  General, Chats, Data usage, Backups, Language, Chat color, Zoom level, etc.). Every section
-  that exists is fully functional, not a visual stub. See DECISIONS.md D-68.
+  Calls/Stories/Linked devices present as "Coming Soon" rather than Signal's full settings
+  sidebar (Account, General, Chats, Data usage, Backups, Language, Chat color, Zoom level, etc.).
+  Every section that exists is fully functional, not a visual stub. See DECISIONS.md D-68.
 - **Voice/video calls, Stories, and linked devices** are placeholder "Coming Soon" screens, as
   explicitly permitted by the assignment brief.
+
+## Notifications / toasts, filters, and placeholders (spec cross-check)
+
+- **Toasts**: a Signal-style dark toast (reference/toast.png), top-left, auto-dismissing after
+  4s, fires for the real events the spec calls out — contact added, group created, profile
+  saved, message failed to send, and a member added to/removed from a group.
+- **Chat list filter**: the filter button next to the search box toggles an "Unread chats only"
+  view of the chat list, with Signal's wording ("Filter by unread") and an empty state ("No
+  unread chats.") when nothing matches.
+- **Linked devices**: a Settings sub-nav entry showing the same "Coming Soon" placeholder used
+  for Calls/Stories, since real multi-device linking is out of scope for this assignment.
 
 ## Core features not working on the deployed app
 

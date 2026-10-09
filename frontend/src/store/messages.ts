@@ -5,6 +5,7 @@
 import { create } from "zustand";
 import { messagesApi } from "@/lib/endpoints";
 import { higherStatus, type LocalStatus } from "@/lib/messageStatus";
+import { useToast } from "@/store/toast";
 import type { Message, MessageStatus } from "@/lib/types";
 
 export type { LocalStatus };
@@ -175,8 +176,10 @@ export const useMessages = create<MessagesState>((set, get) => ({
     });
   },
 
-  markFailed: (clientId) =>
-    set((state) => ({ byConversation: updateOptimistic(state.byConversation, clientId, (m) => ({ ...m, status: "error" })) })),
+  markFailed: (clientId) => {
+    useToast.getState().show("Message failed to send");
+    set((state) => ({ byConversation: updateOptimistic(state.byConversation, clientId, (m) => ({ ...m, status: "error" })) }));
+  },
 
   markSending: (clientId) =>
     set((state) => ({

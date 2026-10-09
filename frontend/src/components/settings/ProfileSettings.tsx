@@ -7,6 +7,7 @@ import { TextInput } from "@/components/ui/TextInput";
 import { mediaUrl } from "@/lib/api";
 import { meApi } from "@/lib/endpoints";
 import { useSession } from "@/store/session";
+import { useToast } from "@/store/toast";
 
 /** Settings -> Profile (reference/profile-editor.png): avatar, first/last name, about. Each field
  * saves on blur via the existing PATCH /me (only fields that changed are sent). */
@@ -31,6 +32,7 @@ export function ProfileSettings() {
     if (Object.keys(patch).length === 0) return;
     const updated = await meApi.update(patch);
     setMe(updated);
+    useToast.getState().show("Profile saved");
     savedRef.current = {
       givenName: updated.given_name,
       familyName: updated.family_name ?? "",

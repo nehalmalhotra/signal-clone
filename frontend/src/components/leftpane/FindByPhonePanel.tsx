@@ -8,8 +8,10 @@ import { CountryCodeSelect } from "@/components/onboarding/CountryCodeSelect";
 import { TextInput } from "@/components/ui/TextInput";
 import { ApiError } from "@/lib/api";
 import { contactsApi, conversationsApi, usersApi } from "@/lib/endpoints";
+import { fullName } from "@/lib/names";
 import { toE164 } from "@/lib/phone";
 import { useContacts } from "@/store/contacts";
+import { useToast } from "@/store/toast";
 import type { ConversationSummary } from "@/lib/types";
 
 interface Props {
@@ -35,6 +37,7 @@ export function FindByPhonePanel({ onBack, onFound }: Props) {
       // "Find by ..." doubles as "add contact": the backend treats a repeat add as a no-op (D-41).
       await contactsApi.add(user.id);
       useContacts.getState().load();
+      useToast.getState().show(`${fullName(user)} added to contacts`);
       const conv = await conversationsApi.openDirect(user.id);
       onFound(conv);
     } catch (err) {

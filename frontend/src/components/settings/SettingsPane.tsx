@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, LogOut, Lock, Palette, Phone, Sparkles, User } from "lucide-react";
+import { Bell, Laptop, LogOut, Lock, Palette, Phone, Sparkles, User } from "lucide-react";
 import { useState } from "react";
 import styles from "./SettingsPane.module.css";
 import { AppearanceSettings } from "./AppearanceSettings";
@@ -8,7 +8,7 @@ import { ProfileSettings } from "./ProfileSettings";
 import { ComingSoon } from "@/components/shell/ComingSoon";
 import { useSession } from "@/store/session";
 
-type Section = "profile" | "appearance" | "privacy" | "notifications" | "calls" | "stories";
+type Section = "profile" | "appearance" | "privacy" | "notifications" | "calls" | "stories" | "linkedDevices";
 
 const SECTIONS: { id: Section; label: string; icon: typeof User }[] = [
   { id: "profile", label: "Profile", icon: User },
@@ -17,6 +17,7 @@ const SECTIONS: { id: Section; label: string; icon: typeof User }[] = [
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "calls", label: "Calls", icon: Phone },
   { id: "stories", label: "Stories", icon: Sparkles },
+  { id: "linkedDevices", label: "Linked devices", icon: Laptop },
 ];
 
 /** Settings screen: a sub-nav (reference/settings-appearance.png, trimmed to the sections this
@@ -55,6 +56,7 @@ export function SettingsPane() {
         {section === "notifications" && <ComingSoon title="Notifications" />}
         {section === "calls" && <ComingSoon title="Calls" />}
         {section === "stories" && <ComingSoon title="Stories" />}
+        {section === "linkedDevices" && <ComingSoon title="Linked Devices" />}
       </div>
     </div>
   );

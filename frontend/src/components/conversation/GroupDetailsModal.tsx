@@ -12,6 +12,7 @@ import { fullName } from "@/lib/names";
 import type { ConversationSummary, Member } from "@/lib/types";
 import { useContacts } from "@/store/contacts";
 import { useSession } from "@/store/session";
+import { useToast } from "@/store/toast";
 
 interface Props {
   conversation: ConversationSummary;
@@ -47,8 +48,10 @@ export function GroupDetailsModal({ conversation, members: initialMembers, myRol
     setBusyId(userId);
     setError(null);
     try {
+      const contact = contacts.find((c) => c.id === userId);
       await groupsApi.addMembers(conversation.id, [userId]);
       await refresh();
+      if (contact) useToast.getState().show(`${fullName(contact)} added to the group`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't add that member");
     } finally {
@@ -60,8 +63,10 @@ export function GroupDetailsModal({ conversation, members: initialMembers, myRol
     setBusyId(userId);
     setError(null);
     try {
+      const removed = members.find((m) => m.user.id === userId);
       await groupsApi.removeMember(conversation.id, userId);
       await refresh();
+      if (removed) useToast.getState().show(`${fullName(removed.user)} removed from the group`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't remove that member");
     } finally {

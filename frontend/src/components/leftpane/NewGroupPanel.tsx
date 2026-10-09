@@ -14,6 +14,7 @@ import { groupsApi } from "@/lib/endpoints";
 import { fullName } from "@/lib/names";
 import { useChats } from "@/store/chats";
 import { useContacts } from "@/store/contacts";
+import { useToast } from "@/store/toast";
 
 type Step = "members" | "name";
 
@@ -52,6 +53,7 @@ export function NewGroupPanel({ onClose }: Props) {
     try {
       const conv = await groupsApi.create(name.trim(), selected);
       useChats.getState().upsert(conv);
+      useToast.getState().show("Group created");
       router.push(`/c/${conv.id}`);
       onClose();
     } catch (e) {
