@@ -20,9 +20,10 @@ interface ConversationMessages {
   loaded: boolean;
 }
 
-function empty(): ConversationMessages {
-  return { items: [], hasMore: false, loadingOlder: false, loaded: false };
-}
+// A single shared instance, not a factory: `get()` below is called from inside component
+// selectors, and returning a fresh object on every call would make useSyncExternalStore see a
+// "changed" snapshot on every render and loop forever ("getSnapshot should be cached").
+const EMPTY_CONVERSATION: ConversationMessages = { items: [], hasMore: false, loadingOlder: false, loaded: false };
 
 function sortBySentAt(items: StoredMessage[]): StoredMessage[] {
   return [...items].sort((a, b) => a.sent_at - b.sent_at || a.id - b.id);
@@ -63,7 +64,7 @@ function updateOptimistic(
 export const useMessages = create<MessagesState>((set, get) => ({
   byConversation: {},
 
-  get: (conversationId) => get().byConversation[conversationId] ?? empty(),
+  get: (conversationId) => get().byConversation[conversationId] ?? EMPTY_CONVERSATION,
 
   loadLatest: async (conversationId) => {
     const page = await messagesApi.list(conversationId, { limit: 50 });
@@ -113,7 +114,7 @@ export const useMessages = create<MessagesState>((set, get) => ({
       status: "sending",
     };
     set((state) => {
-      const current = state.byConversation[conversationId] ?? empty();
+      const current = state.byConversation[conversationId] ?? EMPTY_CONVERSATION;
       return {
         byConversation: {
           ...state.byConversation,
@@ -126,7 +127,7 @@ export const useMessages = create<MessagesState>((set, get) => ({
 
   applyAck: (clientId, message) => {
     set((state) => {
-      const current = state.byConversation[message.conversation_id] ?? empty();
+      const current = state.byConversation[message.conversation_id] ?? EMPTY_CONVERSATION;
       const stored: StoredMessage = { ...message, status: message.status ?? "sent" };
       const optimisticIdx = current.items.findIndex((m) => m.client_id === clientId && m.id < 0);
       let items: StoredMessage[];

@@ -10,7 +10,7 @@ import type { ConversationSummary } from "@/lib/types";
 import { useActiveConversation } from "@/store/activeConversation";
 import { useMessages } from "@/store/messages";
 import { useSession } from "@/store/session";
-import { useTyping } from "@/store/typing";
+import { EMPTY_TYPING, useTyping } from "@/store/typing";
 
 /** The whole chat screen: header, scrollable message list, composer. page.tsx mounts this with
  * `key={conversation.id}` so switching chats always starts from a clean slate (scroll position,
@@ -21,7 +21,7 @@ export function ConversationView({ conversation }: { conversation: ConversationS
   const loadLatest = useMessages((s) => s.loadLatest);
   const loadOlder = useMessages((s) => s.loadOlder);
   const setActive = useActiveConversation((s) => s.setActive);
-  const typingUsers = useTyping((s) => s.typing[conversation.id] ?? {});
+  const typingUsers = useTyping((s) => s.typing[conversation.id] ?? EMPTY_TYPING);
 
   // Frozen the moment the chat opens (lazy initializer, read only once): useMarkRead clears the
   // real unread_count almost immediately, but the divider should stay put while you're reading,

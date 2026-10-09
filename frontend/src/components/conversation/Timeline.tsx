@@ -51,7 +51,7 @@ export function Timeline({
   const renderItems = buildTimeline(items, { unreadDividerBeforeId, unreadCount });
 
   return (
-    <div ref={containerRef} className={styles.scroll} onScroll={onScroll}>
+    <div ref={containerRef} className={styles.scroll} onScroll={onScroll} data-testid="timeline">
       <div ref={sentinelRef} className={styles.sentinel} />
       {loadingOlder && <div className={styles.loadingOlder}>Loading…</div>}
       {renderItems.map((item) => {

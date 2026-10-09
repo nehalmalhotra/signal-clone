@@ -6,6 +6,11 @@ import { create } from "zustand";
 
 const EXPIRE_MS = 15_000;
 
+// Shared, stable fallback for a conversation with no typing activity — a selector must never
+// return a freshly-allocated object (e.g. `?? {}` inline), or React sees a "new" snapshot on
+// every render and loops forever ("getSnapshot should be cached").
+export const EMPTY_TYPING: Readonly<Record<number, boolean>> = {};
+
 interface TypingState {
   typing: Record<number, Record<number, boolean>>; // conversationId -> userId -> isTyping
   timers: Record<string, ReturnType<typeof setTimeout>>; // `${conversationId}:${userId}` -> expiry timer

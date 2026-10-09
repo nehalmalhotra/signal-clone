@@ -9,4 +9,9 @@ export default defineConfig({
       "@": path.resolve(import.meta.dirname, "./src"),
     },
   },
+  test: {
+    // e2e/ holds Playwright specs (chat.spec.ts), not vitest ones — exclude it, plus vitest's
+    // own default exclusions which this `test.exclude` override would otherwise drop.
+    exclude: ["**/node_modules/**", "**/dist/**", "**/.next/**", "e2e/**"],
+  },
 });
