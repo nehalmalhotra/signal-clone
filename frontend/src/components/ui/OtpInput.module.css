@@ -1,0 +1,25 @@
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+/* §7.1 OTP boxes: 32px content, radius 12px, hairline border, elevation-0 shadow */
+.box {
+  width: 32px;
+  height: 32px;
+  border: 0.5px solid var(--border-primary);
+  border-radius: 12px;
+  background: var(--fill-control);
+  box-shadow: var(--shadow-elevation-0);
+  text-align: center;
+  font-size: 13px;
+  outline: none;
+}
+
+.box:focus-visible {
+  box-shadow: 0 0 0 1.5px var(--focus-inner), 0 0 0 4px var(--focus-outer);
+}
+
+.groupGap {
+  margin-right: 14px; /* 10px gap + 14px = 24px before the 4th box, per §7.1 */
+}

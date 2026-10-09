@@ -1,0 +1,71 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  white-space: nowrap;
+}
+
+/* §7.1 pill buttons: body-medium 13/18, weight 500 */
+.primary,
+.secondary {
+  min-width: 56px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: -0.03px;
+  font-weight: 500;
+}
+
+.primary {
+  background: var(--fill-accent);
+  color: var(--label-oncolor);
+}
+
+.primary:active:not(:disabled) {
+  background: var(--fill-accent-pressed);
+}
+
+.primary:disabled {
+  color: var(--label-disabled-oncolor);
+  cursor: default;
+}
+
+.secondary {
+  background: var(--fill-secondary);
+  color: var(--label-primary);
+}
+
+.secondary:disabled {
+  color: var(--label-disabled);
+  cursor: default;
+}
+
+.link {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  color: var(--label-accent);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
+.link:disabled {
+  color: var(--label-disabled);
+  cursor: default;
+}
+
+/* §7.9 legacy modal-footer button */
+.modal {
+  padding: 8px 16px;
+  border-radius: 4px;
+  background: var(--fill-accent);
+  color: var(--label-oncolor);
+  font-weight: 600;
+}
+
+.modal:active {
+  background: var(--fill-accent-pressed);
+}

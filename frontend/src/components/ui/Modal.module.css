@@ -1,0 +1,63 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--fill-overlay);
+}
+
+.dialog {
+  width: 360px;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: auto;
+  border-radius: 8px;
+  background: var(--material-dialog);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 30%), 0 0 8px rgb(0 0 0 / 5%);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 1em;
+}
+
+.title {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.close {
+  display: flex;
+  padding: 2px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--label-primary);
+}
+
+.close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.body {
+  padding: 0 16px;
+}
+
+.bodyNoHeader {
+  padding-top: 16px;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 1em 16px 16px;
+}

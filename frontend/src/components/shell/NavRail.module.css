@@ -1,0 +1,70 @@
+/* §7.3 nav rail: 80px wide, vertical tab strip */
+.rail {
+  display: flex;
+  width: 80px;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  padding: 8px 0;
+  background: var(--surface-secondary);
+  border-right: 1px solid var(--border-primary);
+}
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 2px;
+}
+
+.item {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  padding: 2px 10px;
+  border: none;
+  background: none;
+}
+
+.itemButton {
+  position: relative;
+  display: flex;
+  width: 44px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--label-primary);
+}
+
+.item:hover .itemButton {
+  background: var(--fill-primary);
+}
+
+.itemActive .itemButton {
+  background: var(--fill-primary-pressed);
+}
+
+.itemButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.profile {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  padding: 10px 0;
+  border: none;
+  background: none;
+}
+
+.profile:hover {
+  background: var(--fill-primary);
+}

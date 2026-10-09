@@ -1,0 +1,66 @@
+/* §7.1: gradient backdrop stands in for Signal's bitmap (CLAUDE.md Rule 1: redraw, don't copy). */
+.backdrop {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f2f3fb 0%, #eef0fa 40%, #dbe3fb 100%);
+}
+
+.logo {
+  position: absolute;
+  top: 64px;
+  left: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.logoMark {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--brand);
+}
+
+.card {
+  position: relative;
+  display: flex;
+  width: 572px;
+  max-width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 26px;
+  background: var(--surface-primary);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 15%), 0 0 8px rgb(0 0 0 / 5%);
+  padding: 24px;
+}
+
+.back {
+  display: flex;
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--label-primary);
+}
+
+.back:hover {
+  background: var(--fill-primary);
+}
+
+.body {
+  display: flex;
+  min-height: 352px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}

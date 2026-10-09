@@ -575,3 +575,16 @@ Under 1 min → "Now"; under 1 h → "{n}m"; today → time ("3:45 PM"); under 7
 | `icu:avatarMenuViewArchive` | View Archive |
 | `icu:LeftPane__MoreActionsMenu__AddChatFolder` / `__FolderSettings` | Add chat folder / Folder settings |
 | `icu:NotificationProfileMenuItem` | Notification profile |
+
+### 7.9 Modal (`stylesheets/components/Modal.scss`, `stylesheets/_mixins.scss` `popper-shadow`, `stylesheets/components/Button.scss`; width from `reference/modal.png`)
+| Property | Value |
+|---|---|
+| Width | 360px (measured from the screenshot) |
+| Radius | 8px |
+| Background | material-dialog: `#fafafa` @ 90% (dark `#353535` @ 90%) |
+| Shadow | `0 8px 20px rgba(0,0,0,.3), 0 0 8px rgba(0,0,0,.05)` |
+| Header | padding 16px 16px 1em; title body-1-bold; close button 20px icon, radius 4px |
+| Body | body-1, padding-inline 16px |
+| Footer | padding 1em 16px 16px, buttons right-aligned, 4px apart |
+| Footer button (legacy primary) | radius 4px, padding 8px 16px, body-1-bold, bg fill-accent, white text |
+| Backdrop | fill-overlay |

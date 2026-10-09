@@ -1,0 +1,26 @@
+.menu {
+  position: absolute;
+  bottom: 8px;
+  left: 76px;
+  z-index: 50;
+  min-width: 160px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--surface-card);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 15%), 0 0 8px rgb(0 0 0 / 5%);
+}
+
+.item {
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--label-primary);
+  text-align: left;
+  font-size: 13px;
+}
+
+.item:hover {
+  background: var(--fill-primary);
+}
