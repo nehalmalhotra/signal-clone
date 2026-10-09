@@ -33,3 +33,36 @@ export function formatChatDate(timestamp: number, now: number = Date.now()): str
   }
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
+
+/**
+ * Message-bubble timestamp (design-tokens §8.5): "Now" / "{n}m" / clock time. Unlike
+ * formatChatDate this never falls back to a weekday or date — the day separator (below) carries
+ * that, so the bubble never needs to.
+ */
+export function formatBubbleTime(timestamp: number, now: number = Date.now()): string {
+  const diff = now - timestamp;
+  if (diff < MINUTE) return "Now";
+  if (diff < HOUR) return `${Math.floor(diff / MINUTE)}m`;
+  return new Date(timestamp).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+/**
+ * Day-separator label (design-tokens §8.2): "Today" / "Yesterday" / weekday / "Jan 5" /
+ * "Jan 5, 2024" — the same date rule as the chat row (§7.7), but anchored to calendar days
+ * rather than elapsed time, since the separator only ever appears once per day of messages.
+ */
+export function formatDaySeparator(timestamp: number, now: number = Date.now()): string {
+  const date = new Date(timestamp);
+  const today = new Date(now);
+  const yesterday = new Date(now - DAY);
+
+  if (sameDay(date, today)) return "Today";
+  if (sameDay(date, yesterday)) return "Yesterday";
+  if (now - timestamp < WEEK && sameMonth(date, today)) {
+    return date.toLocaleDateString("en-US", { weekday: "short" });
+  }
+  if (now - timestamp < SIX_MONTHS) {
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}

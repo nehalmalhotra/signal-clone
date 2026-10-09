@@ -1,6 +1,6 @@
 // One typed function per backend route the frontend uses. Components never call fetch directly.
 import { request } from "./api";
-import type { ConversationSummary, Me, SessionResponse, UserPublic, VerifyResponse } from "./types";
+import type { ConversationSummary, Me, MessagePage, SessionResponse, UserPublic, VerifyResponse } from "./types";
 
 export const authApi = {
   requestCode: (phone_number: string) =>
@@ -40,4 +40,15 @@ export const conversationsApi = {
   /** Returns the existing 1:1 chat with that user, or creates it. */
   openDirect: (user_id: number) =>
     request<ConversationSummary>("/conversations/direct", { method: "POST", json: { user_id } }),
+};
+
+export const messagesApi = {
+  /** Oldest-first page, up to `before_id` (exclusive) when given. */
+  list: (conversationId: number, opts: { beforeId?: number; limit?: number } = {}) => {
+    const params = new URLSearchParams();
+    if (opts.beforeId != null) params.set("before_id", String(opts.beforeId));
+    if (opts.limit != null) params.set("limit", String(opts.limit));
+    const qs = params.toString();
+    return request<MessagePage>(`/conversations/${conversationId}/messages${qs ? `?${qs}` : ""}`);
+  },
 };

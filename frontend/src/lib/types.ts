@@ -45,6 +45,11 @@ export interface ConversationSummary {
   last_activity_at: number;
 }
 
+export interface MessagePage {
+  messages: Message[]; // oldest first, ready to render
+  has_more: boolean;
+}
+
 export interface VerifyResponse {
   status: "logged_in" | "profile_required";
   token?: string;
