@@ -1,9 +1,10 @@
 "use client";
 
 import { Mic, Plus, Send, Smile } from "lucide-react";
-import { useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import styles from "./Composer.module.css";
 import { ComingSoonModal } from "@/components/shell/ComingSoonModal";
+import { EmojiPickerPopover } from "@/components/conversation/EmojiPickerPopover";
 import { useTypingSender } from "@/hooks/useTypingSender";
 import { sendChatMessage } from "@/lib/ws/realtime";
 
@@ -14,8 +15,30 @@ const MAX_INPUT_HEIGHT_PX = 60; // design-tokens §4: composer input scrolls pas
 export function Composer({ conversationId }: { conversationId: number }) {
   const [text, setText] = useState("");
   const [comingSoon, setComingSoon] = useState<string | null>(null);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const emojiAnchorRef = useRef<HTMLDivElement>(null);
   const { notifyTyping, stop } = useTypingSender(conversationId);
+
+  // Outside-click/Escape live on the anchor (button + popover together) so re-clicking the
+  // toggle button closes the picker instead of the outside-click handler re-opening it.
+  useEffect(() => {
+    if (!emojiPickerOpen) return;
+    function handlePointerDown(e: MouseEvent): void {
+      if (emojiAnchorRef.current && !emojiAnchorRef.current.contains(e.target as Node)) {
+        setEmojiPickerOpen(false);
+      }
+    }
+    function handleKeyDown(e: globalThis.KeyboardEvent): void {
+      if (e.key === "Escape") setEmojiPickerOpen(false);
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [emojiPickerOpen]);
 
   const dirty = text.trim().length > 0;
 
@@ -49,11 +72,35 @@ export function Composer({ conversationId }: { conversationId: number }) {
     }
   }
 
+  function handlePickEmoji(emoji: string): void {
+    const el = textareaRef.current;
+    const start = el?.selectionStart ?? text.length;
+    const end = el?.selectionEnd ?? text.length;
+    const next = text.slice(0, start) + emoji + text.slice(end);
+    setText(next);
+    notifyTyping();
+    const cursor = start + emoji.length;
+    // React re-renders the textarea asynchronously, so the selection/focus restore has to wait a tick.
+    requestAnimationFrame(() => {
+      el?.focus();
+      el?.setSelectionRange(cursor, cursor);
+      autoGrow();
+    });
+  }
+
   return (
     <div className={styles.area}>
-      <button type="button" className={styles.iconCell} aria-label="Add emoji" onClick={() => setComingSoon("Emoji")}>
-        <Smile aria-hidden />
-      </button>
+      <div className={styles.emojiAnchor} ref={emojiAnchorRef}>
+        <button
+          type="button"
+          className={styles.iconCell}
+          aria-label="Add emoji"
+          onClick={() => setEmojiPickerOpen((open) => !open)}
+        >
+          <Smile aria-hidden />
+        </button>
+        {emojiPickerOpen && <EmojiPickerPopover onPick={handlePickEmoji} />}
+      </div>
       <div className={styles.inputWrap}>
         <textarea
           ref={textareaRef}

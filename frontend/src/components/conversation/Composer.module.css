@@ -12,6 +12,12 @@
   gap: 4px;
 }
 
+.emojiAnchor {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+}
+
 .iconCell {
   display: flex;
   flex-shrink: 0;

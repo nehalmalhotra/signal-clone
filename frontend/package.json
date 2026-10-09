@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "emoji-picker-react": "^4.22.3",
     "lucide-react": "^1.54.0",
     "next": "16.4.0",
     "react": "19.3.0",
