@@ -9,6 +9,7 @@ from app.config import CORS_ORIGINS, DATABASE_PATH, MEDIA_DIR
 from app.db.connection import get_connection, init_db
 from app.db.seed import seed_if_empty
 from app.errors import AppError
+from app.routers import auth, me
 
 
 @asynccontextmanager
@@ -44,6 +45,14 @@ app.add_middleware(
 async def handle_app_error(_: Request, exc: AppError) -> JSONResponse:
     headers = {"WWW-Authenticate": "Bearer"} if exc.status_code == 401 else None
     return JSONResponse({"detail": exc.detail}, status_code=exc.status_code, headers=headers)
+
+
+app.include_router(auth.router)
+app.include_router(me.router)
+
+# Avatars are public files (random names, like Signal's CDN URLs). check_dir=False because
+# the directory is created in lifespan, after this line runs.
+app.mount("/media", StaticFiles(directory=MEDIA_DIR, check_dir=False), name="media")
 
 
 @app.get("/health")
