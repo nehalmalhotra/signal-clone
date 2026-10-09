@@ -9,7 +9,7 @@ from app.config import CORS_ORIGINS, DATABASE_PATH, MEDIA_DIR
 from app.db.connection import get_connection, init_db
 from app.db.seed import seed_if_empty
 from app.errors import AppError
-from app.routers import auth, me
+from app.routers import auth, contacts, me, users
 
 
 @asynccontextmanager
@@ -49,6 +49,8 @@ async def handle_app_error(_: Request, exc: AppError) -> JSONResponse:
 
 app.include_router(auth.router)
 app.include_router(me.router)
+app.include_router(users.router)
+app.include_router(contacts.router)
 
 # Avatars are public files (random names, like Signal's CDN URLs). check_dir=False because
 # the directory is created in lifespan, after this line runs.
