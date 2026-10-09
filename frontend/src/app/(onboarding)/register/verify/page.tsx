@@ -62,16 +62,29 @@ export default function VerificationCodePage() {
         Wrong number?
       </button>
       <div style={{ height: 32 }} />
-      <OtpInput
-        length={6}
-        value={digits}
-        onChange={(v) => {
-          setDigits(v);
-          setError(null);
-          if (v.length === 6) submit(v);
+      {/* The OTP already auto-submits at 6 digits via onChange; this form only exists so Enter
+         does the same thing explicitly (task requirement) — a hidden submit button is required
+         for a multi-input form to treat Enter as implicit submission. */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (digits.length === 6 && !pending) submit(digits);
         }}
-        disabled={pending}
-      />
+      >
+        <OtpInput
+          length={6}
+          value={digits}
+          onChange={(v) => {
+            setDigits(v);
+            setError(null);
+            if (v.length === 6) submit(v);
+          }}
+          disabled={pending}
+        />
+        <button type="submit" className="sr-only" disabled={digits.length !== 6 || pending}>
+          Continue
+        </button>
+      </form>
       {error && <p style={{ color: "var(--error)", fontSize: 13, marginTop: 12 }}>{error}</p>}
       <div style={{ height: 18 }} />
       <Button

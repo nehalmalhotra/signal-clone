@@ -9,7 +9,7 @@ import { OnboardingCard } from "@/components/onboarding/OnboardingCard";
 import { PhoneConfirmModal } from "@/components/onboarding/PhoneConfirmModal";
 import { ApiError } from "@/lib/api";
 import { authApi } from "@/lib/endpoints";
-import { toE164 } from "@/lib/phone";
+import { sanitizeLocalNumber, toE164 } from "@/lib/phone";
 import { useOnboarding } from "@/store/onboarding";
 
 export default function PhoneNumberPage() {
@@ -50,39 +50,44 @@ export default function PhoneNumberPage() {
         Carrier rates may apply.
       </p>
       <div style={{ height: 36 }} />
+      {/* display: contents keeps the form out of OnboardingCard's flex-column box model — its
+         children (input, spacer, button) lay out exactly as if they were direct children — while
+         still making Enter-to-submit work via the type="submit" Continue button below. */}
       <form
-        style={{ width: 324 }}
+        style={{ display: "contents" }}
         onSubmit={(e) => {
           e.preventDefault();
           if (e164) setConfirming(true);
         }}
       >
-        <TextInput
-          leading={
-            <CountryCodeSelect
-              region={region}
-              onChange={(r) => {
-                setRegion(r);
-                const match = r === "US" || r === "CA" ? "1" : code;
-                setCode(match);
-              }}
-            />
-          }
-          type="tel"
-          inputMode="tel"
-          placeholder="Phone number"
-          autoFocus
-          value={localNumber}
-          onChange={(e) => setLocalNumber(e.target.value)}
-        />
-        {error && <p style={{ color: "var(--error)", fontSize: 13, marginTop: 8 }}>{error}</p>}
+        <div style={{ width: 324 }}>
+          <TextInput
+            leading={
+              <CountryCodeSelect
+                region={region}
+                onChange={(r) => {
+                  setRegion(r);
+                  const match = r === "US" || r === "CA" ? "1" : code;
+                  setCode(match);
+                }}
+              />
+            }
+            type="tel"
+            inputMode="tel"
+            placeholder="Phone number"
+            autoFocus
+            value={localNumber}
+            onChange={(e) => setLocalNumber(sanitizeLocalNumber(code, e.target.value))}
+          />
+          {error && <p style={{ color: "var(--error)", fontSize: 13, marginTop: 8 }}>{error}</p>}
+        </div>
+        <div style={{ flex: 1 }} />
+        <div style={{ alignSelf: "flex-end" }}>
+          <Button type="submit" disabled={!e164 || pending}>
+            {pending ? "Sending…" : "Continue"}
+          </Button>
+        </div>
       </form>
-      <div style={{ flex: 1 }} />
-      <div style={{ alignSelf: "flex-end" }}>
-        <Button disabled={!e164 || pending} onClick={() => setConfirming(true)}>
-          {pending ? "Sending…" : "Continue"}
-        </Button>
-      </div>
       {confirming && e164 && (
         <PhoneConfirmModal phoneNumber={e164} onEdit={() => setConfirming(false)} onConfirm={sendCode} />
       )}

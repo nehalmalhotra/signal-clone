@@ -75,34 +75,38 @@ export default function ProfileEntryPage() {
         showAddPhotoButton
       />
       <div style={{ height: 28 }} />
+      {/* display: contents: see the phone step for why — keeps the form out of OnboardingCard's
+         flex-column box model while still making Enter submit via the type="submit" button. */}
       <form
-        style={{ width: 400, display: "flex", flexDirection: "column", gap: 12 }}
+        style={{ display: "contents" }}
         onSubmit={(e) => {
           e.preventDefault();
           submit();
         }}
       >
-        <TextInput
-          placeholder="First name (required)"
-          value={givenName}
-          onChange={(e) => setGivenName(e.target.value)}
-          maxLength={50}
-          autoFocus
-        />
-        <TextInput
-          placeholder="Last name (optional)"
-          value={familyName}
-          onChange={(e) => setFamilyName(e.target.value)}
-          maxLength={50}
-        />
+        <div style={{ width: 400, display: "flex", flexDirection: "column", gap: 12 }}>
+          <TextInput
+            placeholder="First name (required)"
+            value={givenName}
+            onChange={(e) => setGivenName(e.target.value)}
+            maxLength={50}
+            autoFocus
+          />
+          <TextInput
+            placeholder="Last name (optional)"
+            value={familyName}
+            onChange={(e) => setFamilyName(e.target.value)}
+            maxLength={50}
+          />
+        </div>
+        {error && <p style={{ color: "var(--error)", fontSize: 13, marginTop: 12 }}>{error}</p>}
+        <div style={{ flex: 1 }} />
+        <div style={{ alignSelf: "flex-end" }}>
+          <Button type="submit" disabled={!givenName.trim() || pending}>
+            {pending ? "Saving…" : "Continue"}
+          </Button>
+        </div>
       </form>
-      {error && <p style={{ color: "var(--error)", fontSize: 13, marginTop: 12 }}>{error}</p>}
-      <div style={{ flex: 1 }} />
-      <div style={{ alignSelf: "flex-end" }}>
-        <Button disabled={!givenName.trim() || pending} onClick={submit}>
-          {pending ? "Saving…" : "Continue"}
-        </Button>
-      </div>
     </OnboardingCard>
   );
 }

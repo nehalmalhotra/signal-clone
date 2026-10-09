@@ -10,7 +10,7 @@ full project rules and phase plan, `DECISIONS.md` for every non-trivial technica
 - **App**: https://signal-clone-blush.vercel.app
 - **API**: https://signal-clone-sn0r.onrender.com (`/health` for a liveness check)
 
-Log in with any seeded phone number (e.g. `+15550100` for Alice, `+15550101` for Bob) and the
+Log in with any seeded phone number (e.g. `+12025550100` for Alice, `+12025550101` for Bob) and the
 mocked OTP `123456` (see `backend/app/db/seed_data.py` for the full cast).
 
 ### Known limitation: data does not persist between restarts

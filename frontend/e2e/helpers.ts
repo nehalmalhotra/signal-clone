@@ -9,8 +9,8 @@ import type { BrowserContext, Page } from "@playwright/test";
 export const API_URL = process.env.E2E_API_URL ?? "http://localhost:8000";
 export const OTP = "123456";
 
-export const ALICE_PHONE = "+15550100";
-export const BOB_PHONE = "+15550101";
+export const ALICE_PHONE = "+12025550100";
+export const BOB_PHONE = "+12025550101";
 
 /** Logs `page`'s browser context in as the given seeded user before any navigation. */
 export async function loginAs(context: BrowserContext, page: Page, phoneNumber: string): Promise<void> {

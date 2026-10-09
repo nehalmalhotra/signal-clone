@@ -6,7 +6,7 @@ import app.main
 OTP = "123456"
 
 # Seeded phone numbers (app/db/seed_data.py).
-ALICE, BOB, CARMEN, DEV, EMMA, FARAH, GEORGE, HANA = (f"+1555010{i}" for i in range(8))
+ALICE, BOB, CARMEN, DEV, EMMA, FARAH, GEORGE, HANA = (f"+120255501{i:02d}" for i in range(8))
 
 
 @pytest.fixture

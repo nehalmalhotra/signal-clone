@@ -8,6 +8,15 @@ def test_request_code_rejects_malformed_number(client):
     assert client.post("/auth/request-code", json={"phone_number": ALICE}).json() == {"code_sent": True}
 
 
+def test_request_code_rejects_wrong_length_nanp_and_india_numbers(client):
+    # +1 and +91 have a fixed 10-digit national number; too short or too long is rejected even
+    # though it would pass the generic 7-15-digit E.164 pattern.
+    assert client.post("/auth/request-code", json={"phone_number": "+1555999000"}).status_code == 422  # 9 digits
+    assert client.post("/auth/request-code", json={"phone_number": "+155599900000"}).status_code == 422  # 11 digits
+    assert client.post("/auth/request-code", json={"phone_number": "+91555010000000"}).status_code == 422  # 12 digits
+    assert client.post("/auth/request-code", json={"phone_number": "+919876543210"}).json() == {"code_sent": True}  # valid +91, 10 digits
+
+
 def test_wrong_code_is_rejected(client):
     r = client.post("/auth/verify", json={"phone_number": ALICE, "code": "000000"})
     assert r.status_code == 400

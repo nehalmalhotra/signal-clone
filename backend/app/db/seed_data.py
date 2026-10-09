@@ -14,22 +14,22 @@ DAY = 24 * 60
 
 USERS = [
     # handle, phone, username, given, family, about, avatar color, last seen (min ago)
-    {"handle": "alice", "phone": "+15550100", "username": "alice.42", "given": "Alice", "family": "Chen",
+    {"handle": "alice", "phone": "+12025550100", "username": "alice.42", "given": "Alice", "family": "Chen",
      "about": "Coffee first ☕", "color": "A110", "last_seen": 0},
-    {"handle": "bob", "phone": "+15550101", "username": "bobokafor.11", "given": "Bob", "family": "Okafor",
+    {"handle": "bob", "phone": "+12025550101", "username": "bobokafor.11", "given": "Bob", "family": "Okafor",
      "about": "At work", "color": "A130", "last_seen": 40},
-    {"handle": "carmen", "phone": "+15550102", "username": None, "given": "Carmen", "family": "Ruiz",
+    {"handle": "carmen", "phone": "+12025550102", "username": None, "given": "Carmen", "family": "Ruiz",
      "about": None, "color": "A160", "last_seen": 5},
-    {"handle": "dev", "phone": "+15550103", "username": "dev.03", "given": "Dev", "family": "Patel",
+    {"handle": "dev", "phone": "+12025550103", "username": "dev.03", "given": "Dev", "family": "Patel",
      "about": "Available", "color": "A180", "last_seen": 180},
-    {"handle": "emma", "phone": "+15550104", "username": None, "given": "Emma", "family": None,
+    {"handle": "emma", "phone": "+12025550104", "username": None, "given": "Emma", "family": None,
      "about": None, "color": "A140", "last_seen": 2 * DAY},
-    {"handle": "farah", "phone": "+15550105", "username": "farah.88", "given": "Farah", "family": "Haddad",
+    {"handle": "farah", "phone": "+12025550105", "username": "farah.88", "given": "Farah", "family": "Haddad",
      "about": "Reading, always", "color": "A120", "last_seen": 15},
-    {"handle": "george", "phone": "+15550106", "username": None, "given": "George", "family": "Kim",
+    {"handle": "george", "phone": "+12025550106", "username": None, "given": "George", "family": "Kim",
      "about": None, "color": "A200", "last_seen": 600},
     # Deliberately not in Alice's contacts, to demo "add a new contact".
-    {"handle": "hana", "phone": "+15550107", "username": "hana.21", "given": "Hana", "family": "Sato",
+    {"handle": "hana", "phone": "+12025550107", "username": "hana.21", "given": "Hana", "family": "Sato",
      "about": "Busy", "color": "A170", "last_seen": 3000},
 ]
 

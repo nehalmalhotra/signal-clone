@@ -21,6 +21,21 @@ export const COUNTRIES: Country[] = [
   { region: "AE", name: "United Arab Emirates", code: "971" },
 ];
 
+/** Max national-number digits for a calling code, where the backend enforces an exact length
+ * (+1 and +91: 10 digits). Other codes have no client-side cap — the backend's 7-15 total rule
+ * still applies server-side. */
+function maxLocalDigits(callingCode: string): number | null {
+  return callingCode === "1" || callingCode === "91" ? 10 : null;
+}
+
+/** Strips non-digits and truncates to the calling code's national length, for use as the phone
+ * input's onChange filter (task: "digits only, max 10 digits for +1/+91"). */
+export function sanitizeLocalNumber(callingCode: string, raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  const max = maxLocalDigits(callingCode);
+  return max != null ? digits.slice(0, max) : digits;
+}
+
 /** "+1" and "(555) 010-0" -> "+15550100". Returns null unless it matches the backend's E.164 rule. */
 export function toE164(callingCode: string, localNumber: string): string | null {
   const digits = localNumber.replace(/\D/g, "");
