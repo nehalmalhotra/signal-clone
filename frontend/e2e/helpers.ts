@@ -4,7 +4,9 @@
 // chat screen and the WebSocket.
 import type { BrowserContext, Page } from "@playwright/test";
 
-export const API_URL = "http://localhost:8000";
+// Overridable so the same suite can run against the deployed URLs after a smoke deploy
+// (E2E_API_URL=https://... E2E_BASE_URL=https://... npx playwright test), not just localhost.
+export const API_URL = process.env.E2E_API_URL ?? "http://localhost:8000";
 export const OTP = "123456";
 
 export const ALICE_PHONE = "+15550100";
