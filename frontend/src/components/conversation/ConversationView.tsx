@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ConversationHeader } from "./ConversationHeader";
 import { Composer } from "./Composer";
+import { RemovedBanner } from "./RemovedBanner";
 import { Timeline } from "./Timeline";
 import { useMarkRead } from "@/hooks/useMarkRead";
+import { conversationsApi } from "@/lib/endpoints";
+import { fullName } from "@/lib/names";
 import { computeUnreadAnchor } from "@/lib/timeline";
-import type { ConversationSummary } from "@/lib/types";
+import type { ConversationSummary, Member } from "@/lib/types";
 import { useActiveConversation } from "@/store/activeConversation";
 import { useMessages } from "@/store/messages";
 import { useSession } from "@/store/session";
@@ -28,6 +31,11 @@ export function ConversationView({ conversation }: { conversation: ConversationS
   // like Signal's does.
   const [frozenUnreadCount] = useState(() => conversation.unread_count);
 
+  // Group chats need every member's name for sender labels and group_update lines ("Alice added
+  // Bob"); 1:1 chats don't need this at all (the peer is already on `conversation`).
+  const [members, setMembers] = useState<Member[]>([]);
+  const isGroup = conversation.type === "group";
+
   useEffect(() => {
     setActive(conversation.id);
     if (!useMessages.getState().get(conversation.id).loaded) {
@@ -37,6 +45,24 @@ export function ConversationView({ conversation }: { conversation: ConversationS
     // Runs once per mount (conversation.id is stable: page.tsx remounts this per chat via `key`).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversation.id]);
+
+  useEffect(() => {
+    if (!isGroup) return;
+    void conversationsApi.getDetail(conversation.id).then((d) => setMembers(d.members));
+    // Re-fetched whenever the member count changes (add/remove/leave bumps last_activity_at's
+    // sibling field on the chat-list row via conversation.updated, which remounts this via `key`
+    // only on chat switch — member_count is the cheap signal that membership actually changed).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversation.id, conversation.member_count]);
+
+  const nameOf = useCallback(
+    (userId: number) => {
+      if (userId === myId) return "You";
+      const m = members.find((mm) => mm.user.id === userId);
+      return m ? fullName(m.user) : "Someone";
+    },
+    [members, myId]
+  );
 
   useMarkRead(conversation.id);
 
@@ -49,7 +75,7 @@ export function ConversationView({ conversation }: { conversation: ConversationS
 
   return (
     <div style={{ display: "flex", height: "100%", flexDirection: "column", background: "var(--conversation-bg)" }}>
-      <ConversationHeader conversation={conversation} />
+      <ConversationHeader conversation={conversation} members={members} />
       <Timeline
         items={convState.items}
         hasMore={convState.hasMore}
@@ -59,8 +85,10 @@ export function ConversationView({ conversation }: { conversation: ConversationS
         unreadDividerBeforeId={unreadAnchorId}
         unreadCount={frozenUnreadCount}
         someoneTyping={someoneTyping}
+        isGroup={isGroup}
+        nameOf={nameOf}
       />
-      <Composer conversationId={conversation.id} />
+      {conversation.is_member ? <Composer conversationId={conversation.id} /> : <RemovedBanner />}
     </div>
   );
 }

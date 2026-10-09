@@ -1,6 +1,6 @@
 // One typed function per backend route the frontend uses. Components never call fetch directly.
 import { request } from "./api";
-import type { ConversationSummary, Me, MessagePage, SessionResponse, UserPublic, VerifyResponse } from "./types";
+import type { ConversationDetail, ConversationSummary, Me, MessagePage, SessionResponse, UserPublic, VerifyResponse } from "./types";
 
 export const authApi = {
   requestCode: (phone_number: string) =>
@@ -40,6 +40,17 @@ export const conversationsApi = {
   /** Returns the existing 1:1 chat with that user, or creates it. */
   openDirect: (user_id: number) =>
     request<ConversationSummary>("/conversations/direct", { method: "POST", json: { user_id } }),
+  getDetail: (conversationId: number) => request<ConversationDetail>(`/conversations/${conversationId}`),
+};
+
+export const groupsApi = {
+  create: (name: string, member_ids: number[]) =>
+    request<ConversationDetail>("/groups", { method: "POST", json: { name, member_ids } }),
+  addMembers: (groupId: number, user_ids: number[]) =>
+    request<ConversationDetail>(`/groups/${groupId}/members`, { method: "POST", json: { user_ids } }),
+  /** Removing yourself (user_id === your own id) is how you leave. */
+  removeMember: (groupId: number, userId: number) =>
+    request<void>(`/groups/${groupId}/members/${userId}`, { method: "DELETE" }),
 };
 
 export const messagesApi = {

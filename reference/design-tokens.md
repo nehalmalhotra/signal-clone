@@ -673,6 +673,17 @@ I did not trace how the composer gets disabled elsewhere (e.g. in `CompositionIn
 | Type | `type-body-small`, colour `text-secondary` |
 | Test id | `CompositionArea--group-terminated` |
 
+### 8.8 Group update timeline lines (`_locales/en/messages.json`, Signal-Desktop; not covered elsewhere in this file)
+| Key | String |
+|---|---|
+| `icu:GroupV2--create--you` | You created the group. |
+| `icu:GroupV2--create--other` | {memberName} created the group. |
+| `icu:GroupV2--member-add--other--other` | {adderName} added {addeeName}. |
+| `icu:GroupV2--member-add--other--you` | You added {memberName}. |
+| `icu:GroupV2--member-remove--other--other` | {adminName} removed {memberName}. |
+| `icu:GroupV2--member-remove--other--self` | {memberName} left the group. |
+| `icu:GroupV2--member-remove--other--you` | You removed {memberName}. |
+
 ## 9. Keyboard shortcuts (added Phase 6)
 
 Source: `ts/components/ShortcutGuide.dom.tsx` (lists at lines 72-369, rendering at 444+; modal wrapper `ShortcutGuideModal.dom.tsx`). Labels are from `MSGS` (`icu:Keyboard--*`). Story: `components-shortcutguide--default` (Windows/Linux keys) and `components-shortcutguide--mac`. Modal title: "Keyboard Shortcuts". The guide has four sections: Navigation, Messages, Composer, Calling.

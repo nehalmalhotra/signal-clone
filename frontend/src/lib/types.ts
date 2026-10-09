@@ -45,6 +45,17 @@ export interface ConversationSummary {
   last_activity_at: number;
 }
 
+export interface Member {
+  user: UserPublic;
+  role: "admin" | "member";
+  joined_at: number;
+}
+
+export interface ConversationDetail extends ConversationSummary {
+  my_role: "admin" | "member" | null;
+  members: Member[];
+}
+
 export interface MessagePage {
   messages: Message[]; // oldest first, ready to render
   has_more: boolean;

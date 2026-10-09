@@ -1,0 +1,9 @@
+/* design-tokens §7.10: terminated-group banner geometry, reused for "removed from group". */
+.banner {
+  flex-shrink: 0;
+  padding: 16px;
+  border-top: 1px solid var(--border-primary);
+  color: var(--label-secondary);
+  font-size: 13px;
+  text-align: center;
+}
