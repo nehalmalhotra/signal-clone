@@ -10,6 +10,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.db.connection import get_connection
 from app.errors import Unauthorized
+from app.realtime.runtime import Realtime
 from app.services import auth as auth_service
 
 
@@ -50,3 +51,10 @@ def get_media_dir(request: Request) -> Path:
 
 
 MediaDir = Annotated[Path, Depends(get_media_dir)]
+
+
+def get_realtime(request: Request) -> Realtime:
+    return request.app.state.realtime
+
+
+Rt = Annotated[Realtime, Depends(get_realtime)]

@@ -68,3 +68,8 @@ def set_avatar_path(conn: sqlite3.Connection, user_id: int, avatar_path: str | N
         conn.execute("UPDATE users SET avatar_path = ? WHERE id = ?", (avatar_path, user_id))
     return get_user(conn, user_id)
 
+
+
+def set_last_seen(conn: sqlite3.Connection, user_id: int, at: int) -> None:
+    with conn:
+        conn.execute("UPDATE users SET last_seen_at = ? WHERE id = ?", (at, user_id))
