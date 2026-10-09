@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import styles from "./Timeline.module.css";
 import { DaySeparator } from "./DaySeparator";
+import { GroupUpdateLine } from "./GroupUpdateLine";
 import { MessageBubble } from "./MessageBubble";
 import { TypingBubble } from "./TypingBubble";
 import { UnreadDivider } from "./UnreadDivider";
@@ -19,6 +20,9 @@ interface Props {
   unreadDividerBeforeId: number | null;
   unreadCount: number;
   someoneTyping: boolean;
+  /** Group chats only: id -> display name, for sender-name bubbles and group_update lines. */
+  isGroup?: boolean;
+  nameOf?: (userId: number) => string;
 }
 
 /** The scrollable message list: day separators, the unread divider, grouped bubbles, and the
@@ -26,6 +30,7 @@ interface Props {
  * jumping the view (useScrollAnchor). */
 export function Timeline({
   items, hasMore, loadingOlder, onLoadOlder, myId, unreadDividerBeforeId, unreadCount, someoneTyping,
+  isGroup, nameOf,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -57,14 +62,29 @@ export function Timeline({
       {renderItems.map((item) => {
         if (item.kind === "day") return <DaySeparator key={item.key} timestamp={item.timestamp} />;
         if (item.kind === "unread") return <UnreadDivider key={item.key} count={item.count} />;
+        if (item.message.kind === "group_update") {
+          const meta = item.message.meta as { action?: string; target_ids?: number[] } | null;
+          return (
+            <GroupUpdateLine
+              key={item.key}
+              action={meta?.action ?? ""}
+              targetIds={meta?.target_ids ?? []}
+              senderId={item.message.sender_id}
+              myId={myId}
+              nameOf={nameOf ?? ((id) => `#${id}`)}
+            />
+          );
+        }
+        const mine = item.message.sender_id === myId;
         return (
           <MessageBubble
             key={item.key}
             message={item.message}
-            mine={item.message.sender_id === myId}
+            mine={mine}
             collapsedAbove={item.collapsedAbove}
             collapsedBelow={item.collapsedBelow}
             showMeta={item.showMeta}
+            senderName={isGroup && !mine && nameOf ? nameOf(item.message.sender_id) : undefined}
           />
         );
       })}

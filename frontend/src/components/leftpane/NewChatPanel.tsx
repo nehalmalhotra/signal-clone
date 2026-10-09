@@ -8,6 +8,7 @@ import contactRowStyles from "./ContactRow.module.css";
 import { ContactRow } from "./ContactRow";
 import { FindByPhonePanel } from "./FindByPhonePanel";
 import { FindByUsernamePanel } from "./FindByUsernamePanel";
+import { NewGroupPanel } from "./NewGroupPanel";
 import { SectionHeader } from "./SectionHeader";
 import { Avatar } from "@/components/ui/Avatar";
 import { SearchInput } from "@/components/ui/SearchInput";
@@ -16,7 +17,7 @@ import { conversationsApi } from "@/lib/endpoints";
 import { useChats } from "@/store/chats";
 import { useContacts } from "@/store/contacts";
 
-type Mode = "root" | "find-username" | "find-phone";
+type Mode = "root" | "find-username" | "find-phone" | "new-group";
 
 interface Props {
   onClose: () => void;
@@ -58,6 +59,9 @@ export function NewChatPanel({ onClose }: Props) {
   if (mode === "find-phone") {
     return <FindByPhonePanel onBack={() => setMode("root")} onFound={onConnected} />;
   }
+  if (mode === "new-group") {
+    return <NewGroupPanel onClose={onClose} />;
+  }
 
   return (
     <>
@@ -71,7 +75,7 @@ export function NewChatPanel({ onClose }: Props) {
         <SearchInput value={query} onChange={setQuery} placeholder="Name, username, or number" autoFocus />
       </div>
       <div className={styles.body}>
-        <StepRow icon={<Users aria-hidden />} label="New group" onClick={() => {}} disabled />
+        <StepRow icon={<Users aria-hidden />} label="New group" onClick={() => setMode("new-group")} />
         <StepRow icon={<AtSign aria-hidden />} label="Find by username" onClick={() => setMode("find-username")} />
         <StepRow icon={<Hash aria-hidden />} label="Find by phone number" onClick={() => setMode("find-phone")} />
 

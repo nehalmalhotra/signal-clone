@@ -1,0 +1,114 @@
+/* reference/group-members.png, trimmed to a Modal body (design-tokens §7.9). */
+.identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0 16px;
+  text-align: center;
+}
+
+.name {
+  margin-top: 10px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin-top: 2px;
+  color: var(--label-secondary);
+  font-size: 13px;
+}
+
+.sectionHeader {
+  padding: 8px 0 4px;
+  color: var(--label-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.list {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  height: 52px;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  text-align: left;
+}
+
+.text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  margin-left: 10px;
+}
+
+.rowName {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adminLabel {
+  margin-right: 8px;
+  color: var(--label-secondary);
+  font-size: 13px;
+}
+
+.removeButton {
+  display: flex;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--status-error, #f44336);
+}
+
+.removeButton:hover {
+  background: var(--fill-primary);
+}
+
+.addToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  color: var(--fill-accent);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.empty {
+  padding: 8px 0;
+  color: var(--label-secondary);
+  font-size: 13px;
+}
+
+.error {
+  padding: 8px 0 0;
+  color: var(--status-error, #f44336);
+  font-size: 13px;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-primary);
+  margin-top: 8px;
+}
