@@ -34,6 +34,14 @@ export function formatChatDate(timestamp: number, now: number = Date.now()): str
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+/** The conversation header's subtitle (D-12/D-31's deliberate, deliberately subtle deviation:
+ * Signal itself has no online/last-seen indicator). `null` means "say nothing" (never seen). */
+export function formatPresence(online: boolean, lastSeenAt: number | null, now: number = Date.now()): string | null {
+  if (online) return "Online";
+  if (lastSeenAt == null) return null;
+  return `Last seen ${formatChatDate(lastSeenAt, now)}`;
+}
+
 /**
  * Message-bubble timestamp (design-tokens §8.5): "Now" / "{n}m" / clock time. Unlike
  * formatChatDate this never falls back to a weekday or date — the day separator (below) carries

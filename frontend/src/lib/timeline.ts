@@ -57,6 +57,29 @@ function hidesMetadata(collapsedBelow: boolean, status: TimelineMessageLike["sta
   return status !== "sending" && status !== "error";
 }
 
+/**
+ * Approximates the id of the oldest unread incoming message, so the unread divider can be
+ * placed before it (design-tokens §1.3). Walks back from the newest loaded message, counting
+ * incoming (not-mine) messages until `unreadCount` of them have been found. If more messages are
+ * unread than are currently loaded, this anchors at the oldest message loaded so far rather than
+ * nothing — callers may load older pages to bring the true anchor into view.
+ */
+export function computeUnreadAnchor<M extends TimelineMessageLike>(
+  items: readonly M[],
+  unreadCount: number,
+  myId: number | undefined
+): number | null {
+  if (unreadCount <= 0 || items.length === 0) return null;
+  let remaining = unreadCount;
+  for (let i = items.length - 1; i >= 0; i -= 1) {
+    if (items[i].sender_id !== myId) {
+      remaining -= 1;
+      if (remaining === 0) return items[i].id;
+    }
+  }
+  return items[0].id;
+}
+
 export function buildTimeline<M extends TimelineMessageLike>(
   messages: readonly M[],
   opts: { unreadDividerBeforeId?: number | null; unreadCount?: number } = {}

@@ -55,6 +55,15 @@
   /* Splash-screen mark (§7.4): blue in light, turns white in dark (empty-pane-dark.png).
      Kept apart from --brand, which stays blue in both themes for the onboarding wordmark. */
   --splash-logo: var(--brand);
+
+  /* §1.4, §8 message bubbles and timeline (Phase 5). Outgoing text/meta reuse --label-oncolor /
+     --label-secondary-oncolor below; incoming text/the unread-divider text reuse --row-name
+     (same values, §1.3); incoming meta reuses --label-secondary (same values, §1.4). */
+  --bubble-outgoing-gradient: linear-gradient(180deg, #0552f0, #2c6bed);
+  --bubble-incoming-bg: #ebebeb;
+  --label-secondary-oncolor: rgb(255 255 255 / 80%);
+  --divider-line: #848484; /* gray-45, §1.3 — same value in both themes per design-tokens.md */
+  --typing-dot: #5e5e5e; /* gray-60, §8.3 */
 }
 
 /* Phase 7 switches this on. Values are already known (§1.2, §1.3). */
@@ -89,6 +98,12 @@
   /* §1 "Shadows": elevation-1 alpha doubles in dark (8% -> 16%, VARS `--axo-shadow-color-elevation-1`). */
   --shadow-elevation-0: 0 1px 2px 0 rgb(0 0 0 / 16%);
   --splash-logo: #ffffff;
+
+  /* §1.4, §8 message bubbles and timeline: outgoing gradient and divider line are unchanged in
+     dark (design-tokens.md lists the same values for both themes). */
+  --bubble-incoming-bg: #323232;
+  --label-secondary-oncolor: rgb(255 255 255 / 70%);
+  --typing-dot: #ffffff;
 }
 
 * {

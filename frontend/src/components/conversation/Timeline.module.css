@@ -1,0 +1,19 @@
+.scroll {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding: 8px 16px 0;
+  background: var(--conversation-bg);
+}
+
+.sentinel {
+  height: 1px;
+}
+
+.loadingOlder {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+  color: var(--label-secondary);
+  font-size: 12px;
+}

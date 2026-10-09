@@ -1,0 +1,78 @@
+/* design-tokens §4 "Conversation header and composer": area min-height 42px, padding-block 10px;
+ * input radius 18px, height 32-72px, inner padding 12px/6px; button cells margin-inline 4px
+ * (12px at the outer edges). */
+.area {
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-end;
+  min-height: 42px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border-primary);
+  background: var(--conversation-bg);
+  gap: 4px;
+}
+
+.iconCell {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--label-secondary);
+}
+
+.iconCell:hover {
+  background: var(--fill-primary);
+}
+
+.iconCell svg {
+  width: 20px;
+  height: 20px;
+}
+
+.inputWrap {
+  overflow: hidden;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-height: 32px;
+  max-height: 72px;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  background: var(--bubble-incoming-bg);
+}
+
+.inputWrap:focus-within {
+  border-color: var(--brand);
+}
+
+.input {
+  overflow-y: auto;
+  width: 100%;
+  max-height: 60px;
+  border: none;
+  background: none;
+  color: var(--label-primary);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.08px;
+  resize: none;
+}
+
+.input::placeholder {
+  color: var(--label-placeholder);
+}
+
+.input:focus {
+  outline: none;
+}
+
+.sendActive {
+  color: var(--fill-accent);
+}

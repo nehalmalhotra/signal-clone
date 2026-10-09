@@ -1,0 +1,53 @@
+/* §7's $header-height / ConversationHeader.scss, extended for Phase 5 (§8). */
+.header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: 52px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--conversation-bg);
+}
+
+.identity {
+  display: flex;
+  overflow: hidden;
+  align-items: center;
+  flex: 1;
+  gap: 12px;
+  min-width: 0;
+  padding: 4px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  text-align: left;
+}
+
+.identity:hover {
+  background: var(--fill-primary);
+}
+
+.name {
+  overflow: hidden;
+  color: var(--label-primary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtitle {
+  overflow: hidden;
+  color: var(--label-secondary);
+  font-size: 13px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+}

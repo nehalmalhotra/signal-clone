@@ -1,0 +1,84 @@
+/* design-tokens §3, §8.1: 18px radius (4px on the grouped/sender-side corner), 8px/12px padding,
+ * max-width min(306px, 100% - 38px). Margins and the collapsed corner are computed per-message
+ * in MessageBubble.tsx since they depend on grouping, so only the shared geometry lives here. */
+.row {
+  display: flex;
+  width: 100%;
+}
+
+.mine {
+  justify-content: flex-end;
+}
+
+.theirs {
+  justify-content: flex-start;
+}
+
+.bubbleWrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  max-width: min(306px, calc(100% - 38px));
+}
+
+.bubble {
+  overflow-wrap: break-word;
+  min-width: 0;
+  padding: 8px 12px;
+}
+
+.bubbleOutgoing {
+  background: var(--bubble-outgoing-gradient);
+  background-attachment: fixed;
+  color: var(--label-oncolor);
+}
+
+.bubbleIncoming {
+  background: var(--bubble-incoming-bg);
+  color: var(--row-name);
+}
+
+.body {
+  white-space: pre-wrap;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 3px;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.time {
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.06px;
+}
+
+.metaOutgoing {
+  color: var(--label-secondary-oncolor);
+}
+
+.metaIncoming {
+  color: var(--label-secondary);
+}
+
+/* §5, §8.7: the failed-send icon sits outside the bubble on the start side, not inside it. */
+.errorButton {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--error);
+}
+
+.errorButton svg {
+  transform: scale(1.6);
+}
