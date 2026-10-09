@@ -19,13 +19,6 @@
   color: var(--brand);
 }
 
-.logoMark {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--brand);
-}
-
 .card {
   position: relative;
   display: flex;

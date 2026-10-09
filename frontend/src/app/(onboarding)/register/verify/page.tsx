@@ -7,6 +7,7 @@ import { OtpInput } from "@/components/ui/OtpInput";
 import { OnboardingCard } from "@/components/onboarding/OnboardingCard";
 import { ApiError } from "@/lib/api";
 import { authApi } from "@/lib/endpoints";
+import { formatPhoneForDisplay } from "@/lib/phone";
 import { useOnboarding } from "@/store/onboarding";
 import { useSession } from "@/store/session";
 
@@ -18,6 +19,7 @@ export default function VerificationCodePage() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resent, setResent] = useState(false);
+  const [calledMe, setCalledMe] = useState(false);
 
   // No phone number in memory (e.g. a page refresh): the step before this one never ran.
   useEffect(() => {
@@ -51,7 +53,7 @@ export default function VerificationCodePage() {
     <OnboardingCard onBack={() => router.push("/register")}>
       <div style={{ height: 80 }} />
       <h1 style={{ fontSize: 18, lineHeight: "24px", fontWeight: 600, marginBottom: 8 }}>Verification code</h1>
-      <p style={{ color: "var(--label-secondary)" }}>Enter the code we sent to {phoneNumber}</p>
+      <p style={{ color: "var(--label-secondary)" }}>Enter the code we sent to {formatPhoneForDisplay(phoneNumber)}</p>
       <button
         type="button"
         onClick={() => router.push("/register")}
@@ -82,8 +84,17 @@ export default function VerificationCodePage() {
       >
         {resent ? "Code resent" : "Resend code"}
       </Button>
-      <Button variant="link" disabled>
-        Call me
+      <Button
+        variant="link"
+        disabled={calledMe}
+        onClick={async () => {
+          // Mocked: there's no real call to place, so this sends the same fixed OTP again
+          // (D-15) — enough to demonstrate the control without a telephony integration.
+          await authApi.requestCode(phoneNumber);
+          setCalledMe(true);
+        }}
+      >
+        {calledMe ? "Calling…" : "Call me"}
       </Button>
       <div style={{ flex: 1 }} />
     </OnboardingCard>

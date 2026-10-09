@@ -27,3 +27,13 @@ export function toE164(callingCode: string, localNumber: string): string | null 
   const full = `+${callingCode}${digits}`;
   return /^\+[0-9]{7,15}$/.test(full) ? full : null;
 }
+
+/**
+ * "+15551234567" -> "+1 555-123-4567" (matches onboarding-verification.png's "+1 415-555-1111").
+ * Only the NANP (+1, 10 local digits) shape is formatted; anything else is shown as typed,
+ * since we don't carry per-country grouping rules for the short list in COUNTRIES.
+ */
+export function formatPhoneForDisplay(e164: string): string {
+  const match = /^\+1(\d{3})(\d{3})(\d{4})$/.exec(e164);
+  return match ? `+1 ${match[1]}-${match[2]}-${match[3]}` : e164;
+}

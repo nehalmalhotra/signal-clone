@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { formatPhoneForDisplay } from "@/lib/phone";
 
 interface Props {
   phoneNumber: string;
@@ -24,7 +25,7 @@ export function PhoneConfirmModal({ phoneNumber, onEdit, onConfirm }: Props) {
       }
     >
       <p style={{ padding: "16px 0 4px" }}>Is your phone number above correct?</p>
-      <p style={{ paddingBottom: 16, fontWeight: 600 }}>{phoneNumber}</p>
+      <p style={{ paddingBottom: 16, fontWeight: 600 }}>{formatPhoneForDisplay(phoneNumber)}</p>
     </Modal>
   );
 }

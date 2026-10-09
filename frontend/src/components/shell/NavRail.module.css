@@ -9,6 +9,36 @@
   padding: 8px 0;
   background: var(--surface-secondary);
   border-right: 1px solid var(--border-primary);
+  transition: width 0.15s ease;
+}
+
+/* Collapsed (the hamburger toggle): narrows to the toggle's own width, like NavTabs--collapsed
+   hiding the tab list. We keep the toggle visible as the handle back to expanded. */
+.rail.collapsed {
+  width: 44px;
+}
+
+.toggle {
+  display: flex;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--label-primary);
+}
+
+.toggle:hover {
+  background: var(--fill-primary);
+}
+
+.toggle svg {
+  width: 18px;
+  height: 18px;
 }
 
 .tabs {

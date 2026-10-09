@@ -10,7 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Signal",
+  // "Signal Clone" (not "Signal") so the browser tab never reads as the real app.
+  title: "Signal Clone",
   description: "A Signal Desktop clone",
 };
 

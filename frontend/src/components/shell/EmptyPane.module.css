@@ -12,24 +12,13 @@
 }
 
 .logo {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: var(--brand);
+  display: flex;
+  color: var(--splash-logo);
 }
 
 .title {
   margin-top: 20px;
-  margin-bottom: 6px;
   font-size: 18px;
   line-height: 24px;
   font-weight: 600;
-}
-
-.footer {
-  position: absolute;
-  bottom: 0;
-  padding: 20px;
-  color: var(--label-secondary);
-  font-size: 13px;
 }

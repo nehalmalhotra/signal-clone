@@ -3,6 +3,7 @@
 import { ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
 import styles from "./OnboardingCard.module.css";
+import { SignalWordmarkIcon } from "@/components/icons/BrandMarks";
 
 interface Props {
   children: ReactNode;
@@ -14,7 +15,7 @@ export function OnboardingCard({ children, onBack }: Props) {
   return (
     <div className={styles.backdrop}>
       <div className={styles.logo}>
-        <span className={styles.logoMark} aria-hidden />
+        <SignalWordmarkIcon />
         Signal
       </div>
       <div className={styles.card}>

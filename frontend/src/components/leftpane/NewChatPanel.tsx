@@ -4,10 +4,12 @@ import { AtSign, ChevronLeft, Hash, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import styles from "./NewChatPanel.module.css";
+import contactRowStyles from "./ContactRow.module.css";
 import { ContactRow } from "./ContactRow";
 import { FindByPhonePanel } from "./FindByPhonePanel";
 import { FindByUsernamePanel } from "./FindByUsernamePanel";
 import { SectionHeader } from "./SectionHeader";
+import { Avatar } from "@/components/ui/Avatar";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { fullName } from "@/lib/names";
 import { conversationsApi } from "@/lib/endpoints";
@@ -89,13 +91,19 @@ export function NewChatPanel({ onClose }: Props) {
               <button
                 key={g.id}
                 type="button"
-                className={styles.stepRow}
+                className={`${contactRowStyles.row} focus-ring`}
                 onClick={() => {
                   router.push(`/c/${g.id}`);
                   onClose();
                 }}
               >
-                {g.title}
+                <Avatar name={g.title} color={g.avatar_color} url={g.avatar_url} size={40} />
+                <span className={contactRowStyles.text}>
+                  <span className={contactRowStyles.name}>{g.title}</span>
+                  <span className={contactRowStyles.subtitle}>
+                    {g.member_count} {g.member_count === 1 ? "member" : "members"}
+                  </span>
+                </span>
               </button>
             ))}
           </>
