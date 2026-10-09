@@ -18,6 +18,9 @@ export const authApi = {
 export const meApi = {
   get: () => request<Me>("/me"),
 
+  update: (body: { given_name?: string; family_name?: string | null; about?: string | null }) =>
+    request<Me>("/me", { method: "PATCH", json: body }),
+
   uploadAvatar: (file: File) => {
     const form = new FormData();
     form.append("file", file);

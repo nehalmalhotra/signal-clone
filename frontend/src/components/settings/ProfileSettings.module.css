@@ -1,0 +1,36 @@
+/* reference/profile-editor.png: centered title, 80px avatar, a card of stacked fields, hint text. */
+.pane {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.title {
+  margin-bottom: 24px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+  padding: 4px 0;
+  border-radius: 10px;
+  background: var(--surface-card);
+  text-align: left;
+}
+
+.row {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.hint {
+  margin-top: 8px;
+  color: var(--label-secondary);
+  font-size: 12px;
+  text-align: left;
+}

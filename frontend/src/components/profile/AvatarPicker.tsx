@@ -10,15 +10,17 @@ interface Props {
   color: string;
   previewUrl: string | null; // an object URL for the picked file, or an existing avatar
   onPick: (file: File) => void;
-  /** Shows the "Add photo" pill below the circle, like the registration screen (§7.1). */
+  /** Shows a pill below the circle, like the registration screen (§7.1). */
   showAddPhotoButton?: boolean;
+  /** Pill label: "Add photo" (onboarding) or "Edit photo" (icu:ProfileEditor--edit-photo). */
+  buttonLabel?: string;
 }
 
 /**
  * Signal has a preset-color/crop editor here (deviation, logged in DECISIONS.md);
  * we use a plain file picker, which is what the spec's "mocked" scope calls for.
  */
-export function AvatarPicker({ name, color, previewUrl, onPick, showAddPhotoButton }: Props) {
+export function AvatarPicker({ name, color, previewUrl, onPick, showAddPhotoButton, buttonLabel = "Add photo" }: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
   const open = () => fileInput.current?.click();
 
@@ -37,7 +39,7 @@ export function AvatarPicker({ name, color, previewUrl, onPick, showAddPhotoButt
       </button>
       {showAddPhotoButton && (
         <button type="button" className={styles.addPhoto} onClick={open}>
-          Add photo
+          {buttonLabel}
         </button>
       )}
       <input
