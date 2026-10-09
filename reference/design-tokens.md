@@ -576,6 +576,69 @@ Under 1 min → "Now"; under 1 h → "{n}m"; today → time ("3:45 PM"); under 7
 | `icu:LeftPane__MoreActionsMenu__AddChatFolder` / `__FolderSettings` | Add chat folder / Folder settings |
 | `icu:NotificationProfileMenuItem` | Notification profile |
 
+## 8. Timeline / chat screen (added Phase 5)
+
+### 8.1 Message grouping (`ts/util/timelineUtil.std.ts`)
+Two consecutive messages are "in the same group" (collapsed) when **all** of: same `author.id`,
+same calendar day (`isSameDay`), the newer one's timestamp is within **3 minutes**
+(`COLLAPSE_WITHIN = 3 * MINUTE`) of the older one's, the newer one isn't older than the previous
+(no out-of-order flip), and there is no unread-indicator between them. A message directly above an
+"Unread Messages" divider is never collapsed into the one below it, and vice versa.
+`shouldCollapseAbove` / `shouldCollapseBelow` each run this same-group check against the neighbor on
+that side — this is what drives the 4px corner / 1px margin rule already in §3.
+
+**Metadata (time + status) hides** on a grouped-below message only when: it actually is grouped below
+a newer one, it isn't an edited message, and its status isn't `sending`/`paused`/`error`/`partial-sent`
+(an in-flight or failed message always keeps its own metadata visible, even mid-group).
+Source: `shouldCurrentMessageHideMetadata` in the same file.
+
+### 8.2 Day separator (`ts/components/conversation/TimelineDateHeader.dom.tsx`)
+Centered row, `padding: 20px` all sides (Tailwind `p-5`). Text style body-medium (13px), `label-secondary`
+color (gray-60 / gray-25) — same text style as the chat-row preview, not caption. No background or pill
+in the plain 1:1/group case (the pill variant is only for the "Signal" system conversation). Shown when
+the item is the oldest loaded message, or when its day differs from the previous item's day
+(`!isSameDay`). Label reuses `formatDate`: Today / Yesterday / weekday / "Jan 5" / "Jan 5, 2024" — the
+same rule as the chat-row date (§7.7).
+
+### 8.3 Typing indicator bubble (`ts/components/conversation/TypingAnimation.dom.tsx`, `_modules.scss` `.module-typing-animation*`)
+Confirms and extends §3's "Typing indicator dots" row: container `height: 8px; width: 38px` standalone,
+**30px wide** inside a message bubble (`.module-message__typing-animation-container`); `padding-inline: 1px`.
+Each dot: 6×6 circle, `opacity: 0.4` at rest, color gray-60 (light) / white (dark). Keyframes
+`typing-animation`: 0% opacity .4 → 20% `scale(1.3)` + opacity 1 → 40% opacity .4 (back to .4 and holds to
+100%), duration **1600ms**, `ease`, infinite, and **only animates while the page is visible**
+(`only-when-page-is-visible` mixin — pause it on `document.hidden`). Dot 2 delays **160ms**, dot 3 delays
+**320ms** (staggered ripple). Rendered as an incoming-style bubble (same geometry as a normal incoming
+message bubble, `surface-message-incoming` background) sitting where the next incoming message would go,
+with a `row-reverse` 28px avatar slot for groups (not needed for 1:1).
+
+### 8.4 Composer send-button swap (`ts/components/CompositionArea.dom.tsx`, line ~1377)
+The microphone button and the send button occupy the same slot and are **mutually exclusive**, driven by
+`dirty` (true once the input has any content) and `shouldShowMicrophone`: mic shows only `!dirty`; send
+shows when `dirty || !shouldShowMicrophone`. I.e. empty composer → mic icon in that slot; typing starts →
+mic swaps for the send (paper-plane / arrow) icon. The "+" attach button is unaffected and stays visible always.
+
+### 8.5 Message bubble timestamp format (`ts/util/formatTimestamp.dom.ts` `formatTime`, used by `MessageTimestamp.dom.tsx`)
+`< 1 min` → "Now" (`icu:justNow`); `< 1 hour` → "{n}m" (`icu:minutesAgo`, floor of minutes); otherwise →
+localized clock time, `hour: 'numeric', minute: '2-digit'` (e.g. "3:45 PM") — **not** relative "{n}h" in the
+bubble (that form is reserved for `isRelativeTime` contexts like the chat row, §7.7, which is a different
+formatter, `formatDateTimeShort`). The bubble never shows a date, only this clock-ish string; the day
+separator (§8.2) carries the date.
+
+### 8.6 Scroll-to-bottom button (`ts/components/conversation/ScrollDownButton.dom.tsx`, `stylesheets/components/ScrollDownButton.scss`)
+36×36px circular button (`border-radius: 18px`), no border, drop shadow
+`0 0 2px rgba(0,0,0,.2), 0 2px 6px rgba(0,0,0,.12)`, floats bottom-right of the timeline. Carries an
+unread-count badge (same "99+" cap as the chat-row badge, §4) when there are unread messages below the
+fold; plain chevron-down with no badge when just scrolled up with nothing new. Out of scope for this phase
+(not in the reference screenshots) — can be added in a later polish pass; noted here so it isn't invented
+differently if built later.
+
+### 8.7 Failed-send icon (`ts/components/conversation/Message.dom.tsx` `.module-message__error-container`)
+Confirms §5: the error icon renders in its own `module-message__error-container`, outside and to the
+start side of the bubble (same slot the avatar/timestamp-on-hover would use), not inside the bubble body.
+Color is the legacy accent-red `#f44336` in both themes (not a semantic token). No inline "Send failed"
+text sits next to the bubble — that wording appears only in the message Info view per §6.6; the bubble
+communicates failure through the icon alone, clickable to retry.
+
 ### 7.9 Modal (`stylesheets/components/Modal.scss`, `stylesheets/_mixins.scss` `popper-shadow`, `stylesheets/components/Button.scss`; width from `reference/modal.png`)
 | Property | Value |
 |---|---|
@@ -588,3 +651,24 @@ Under 1 min → "Now"; under 1 h → "{n}m"; today → time ("3:45 PM"); under 7
 | Footer | padding 1em 16px 16px, buttons right-aligned, 4px apart |
 | Footer button (legacy primary) | radius 4px, padding 8px 16px, body-1-bold, bg fill-accent, white text |
 | Backdrop | fill-overlay |
+
+### 7.10 Composer when the user has left a group (`ts/components/CompositionArea.dom.tsx`; `ts/state/smart/CompositionArea.preload.tsx:369` passes `left={conversation.left ?? null}`)
+**`left === true` renders no special UI and no text.** The prop is read in only two places (lines 1090 and 1114), and in both it only *skips* a screen:
+1. skips the "share your profile" prompt (the `MandatoryProfileSharingActions` screen, used for direct chats and old V1 groups);
+2. skips the "upgrade this old V1 group" prompt (`GroupV1DisabledActions`).
+
+With `left` true, the component runs the same checks in the same order as for a member:
+terminated → blocked / message request → SMS-only → pending approval → announcements-only → recording → the normal composer (`.CompositionArea`).
+So a left, non-terminated, accepted group shows the **normal composer**. The text "You are no longer a member of the group." (`icu:youLeftTheGroup`) is not in this file. It appears only in the timeline notice `ts/components/conversation/GroupNotification.dom.tsx:115` and the toast `ts/components/ToastManager.dom.tsx:654`.
+I did not trace how the composer gets disabled elsewhere (e.g. in `CompositionInput`), so I don't know whether it is non-interactive in the real app.
+
+**Closest real "can't send" layout, the terminated-group banner** (same file, lines 1016-1028; screenshot `reference/removed-member-closest.png` / `-dark.png`, story `components-compositionarea--terminated-group`):
+| Property | Value |
+|---|---|
+| Text | "You can't send messages because the group has ended." (`icu:CompositionArea--group-terminated`, `_locales/en/messages.json:6429`) |
+| Replaces | the whole composer (no input, no buttons) |
+| Layout | one centered text line inside a full-width block |
+| Top edge | 1px line, `border-primary` (axo-color-border-primary, `ts/axo/_tailwind-theme/colors.css:467`: black @ 6% light, white @ 6% dark) |
+| Vertical padding | 16px top and bottom |
+| Type | `type-body-small`, colour `text-secondary` |
+| Test id | `CompositionArea--group-terminated` |
