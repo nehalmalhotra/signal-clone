@@ -485,3 +485,93 @@ the icon alone. The words above appear only in the message **Info** (detail) vie
 - Group name max length: 32 characters. Source: Signal-Desktop `ts/components/GroupTitleInput.dom.tsx` (`maxLengthCount={32}`).
 - Typing indicator, sender: send "started" on first keystroke, re-send every 10 s while typing continues, send "stopped" after 3 s with no keystroke. Source: Signal-Desktop `ts/models/conversations.preload.ts` (`setTypingRefreshTimer` 10*1000, `setTypingPauseTimer` 3*1000).
 - Typing indicator, receiver: hide after 15 s without a refresh; tracked per sender *device*. Source: same file, `contactTypingTimers` (15*1000, key `${sender.id}.${senderDevice}`).
+
+---
+
+## 7. Onboarding, app shell, compose (added Phase 4)
+
+### 7.1 Registration card (`ts/components/standaloneRegistration/StandaloneRegistration.dom.tsx`, `.../util/StepComponents.dom.tsx`, `stylesheets/components/standaloneRegistration/StandaloneRegistration.scss`)
+Axo spacing unit = 4px (Tailwind scale), checked against the screenshot (card 572px wide).
+
+| Property | Value |
+|---|---|
+| Page background | a bitmap (`images/registration-background.png`, NOT copied). We use a soft CSS gradient instead. |
+| Signal logo | absolute, inset-inline-start 32px, top 64px, height 32px (top 32px / height 16px when the window is ≤800px tall and ≤900px wide) |
+| Card | centered, width **572px**, max-width calc(100% − 32px), max-height calc(100% − 32px), radius **26px**, bg surface-primary, padding **24px** |
+| Step body | min-height 352px, centered column, text-align center |
+| Title | title-medium (18/24, 600), margin-bottom 8px |
+| Description | body-large (14/20), label-secondary, width 362px |
+| Phone input width | 324px; profile name inputs 400px |
+| Primary button (Continue) | pill, padding 6px 12px, min-width 56px, body-medium 13px weight 500, bg fill-accent, text white; disabled text = white @ 35% (`label-disabled-oncolor`) |
+| Secondary button (Add photo) | same size, bg fill-secondary, label-primary text |
+| Text link buttons (Resend code, Call me) | label-accent text, no background |
+| Profile avatar preview | 80×80 |
+| OTP boxes | 6 boxes, 32px content + 10px padding, radius 12px, border 0.5px border-primary, shadow elevation-0, 10px gap, **24px gap after the 3rd** |
+| Spacers (phone step) | 52px above the title, 36px above the input |
+| Spacers (code step) | 80px above the title, 32px above the boxes, 72px below |
+
+### 7.2 Text field (`ts/axo/fields/_AxoBaseField.css`, `ts/axo/_tailwind-theme/focus-rings.css`, `colors.css`, `shadows.css`)
+| Property | Value |
+|---|---|
+| Background | fill-control: `#ffffff` / `#969696` @ 12% |
+| Border | 0.5px border-primary + shadow `0 1px 2px 0 rgba(0,0,0,.08)` |
+| Radius | `curved-lg` = 8px × 1.15 ≈ **9px** |
+| Text | body-large (14/20), padding-block 6px, padding-inline 10px |
+| Focus ring | 2.5px `#808190` (dark `#c9cbda`) outside a 1.5px `#ffffff` (dark `#000`) offset |
+
+### 7.3 Nav rail (`stylesheets/components/NavTabs.scss`, `ts/components/NavTabs.dom.tsx`)
+Order, top to bottom: menu toggle, **Chats, Calls, Stories**, flexible space, **Settings**.
+The selected tab uses the filled icon variant and the fill-primary-pressed background; hover uses fill-primary.
+Item: padding 2px block / 10px inline; button: padding 10px block, radius 8px; icon 20px.
+Unread badge: 16px, label-destructive bg, 10px text, top −4px, inline-end −6px.
+
+### 7.4 Empty right pane (`ts/components/ChatsTab.dom.tsx`, `stylesheets/components/Inbox.scss`)
+Centered column: Signal logo 96px → "Welcome to Signal" (title-medium, line-height 24px, margin 20px top / 6px bottom).
+Signal also shows a "What's new" link and, pinned to the bottom, "Signal is a 501c3 nonprofit" (padding 20px, label-secondary).
+
+### 7.5 Left pane header (`stylesheets/components/NavSidebar.scss`, `ts/components/LeftPane.dom.tsx`)
+- Title "Chats": title-medium with line-height 20px; padding-inline 24px; back-button variant uses body-1-bold and a 16px start padding.
+- Back button: 20px icon, 4px padding, radius 4px, hover fill-primary.
+- "⋯" (more actions) menu items: View Archive, Add chat folder, Folder settings, Notification profile.
+- Filter button label: "Filter by unread"; "Clear filter" (`MSGS` `icu:filterByUnreadButtonLabel`, `icu:clearFilterButton`).
+
+### 7.6 Compose (New chat) (`stylesheets/components/ComposeStepButton.scss`, `LeftPaneFindBy*Helper.scss`, `ts/components/leftPane/LeftPaneFindBy*Helper.dom.tsx`)
+- Step row icon ("New group", "Find by username", "Find by phone number"): 32px circle, bg black @ 6% (dark white @ 12%), 20px glyph.
+- Find-by screens: header with a back button and the title; the input's padding-inline is 12px and there is no search icon; the phone variant puts the country selector above the input (gap 12px, margin-top 8px); a "Next" button sits in the pane footer.
+
+### 7.7 Chat-row date rules (`ts/util/formatTimestamp.dom.ts` `formatDateTimeShort` / `formatTime`)
+Under 1 min → "Now"; under 1 h → "{n}m"; today → time ("3:45 PM"); under 7 days AND same month → weekday ("Mon"); under 6 months → "Jan 5"; otherwise → "Jan 5, 2024".
+
+### 7.8 Extra strings (`MSGS`)
+| Key | String |
+|---|---|
+| `icu:StandaloneRegistration--back` | Back |
+| `icu:StandaloneRegistration--PhoneNumber--header` | Phone number |
+| `…--PhoneNumber--description--line-1` / `line-2` | Enter your phone number to verify your account. / Carrier rates may apply. |
+| `…--PhoneNumber--placeholder` / `--button` | Phone number / Continue |
+| `…--PhoneNumber--RegionCodeSelector--Label` | Select country code |
+| `…--PhoneNumber--Confirmation--description` | Is your phone number above correct? |
+| `…--PhoneNumber--Confirmation--cancel` / `--confirm` | Edit number / Yes |
+| `…--VerificationCode--header` | Verification code |
+| `…--VerificationCode--description` | Enter the code we sent to {phoneNumber} |
+| `…--VerificationCode--wrong-number` | Wrong number? |
+| `…--VerificationCode--send-sms` / `--call-me` | Resend code / Call me |
+| `…--VerificationCode--IncorrectCode--description` | The code you entered is incorrect. Please review the 6 digit code and try again. |
+| `…--VerificationCode--IncorrectCode--button` | OK |
+| `…--ProfileEntry--header` | Set up your profile |
+| `…--ProfileEntry--description` | Profiles are visible to people you message, contacts, and groups. |
+| `…--ProfileEntry--add-photo` | Add photo |
+| `…--ProfileEntry--first-name` / `--last-name` | First name (required) / Last name (optional) |
+| `…--ProfileEntry--continue` | Continue |
+| `icu:ProfileEditor--edit-photo` | Edit photo |
+| `icu:LeftPaneFindByHelper__title--findByUsername` / `--findByPhoneNumber` | Find by username / Find by phone number |
+| `icu:LeftPaneFindByHelper__placeholder--findByUsername` / `--findByPhoneNumber` | Username / Phone number |
+| `icu:LeftPaneFindByHelper__description--findByUsername` | Enter a username followed by a dot and its set of numbers. |
+| `icu:next2` | Next |
+| `icu:createNewGroupButton` | New group |
+| `icu:noContactsFound` | No contacts found |
+| `icu:startConversation--phone-number-not-found` | User not found. "{phoneNumber}" is not a Signal user. |
+| `icu:startConversation--username-not-found` | {atUsername} is not a Signal user. Make sure you've entered the complete username. |
+| `icu:avatarMenuViewArchive` | View Archive |
+| `icu:LeftPane__MoreActionsMenu__AddChatFolder` / `__FolderSettings` | Add chat folder / Folder settings |
+| `icu:NotificationProfileMenuItem` | Notification profile |
