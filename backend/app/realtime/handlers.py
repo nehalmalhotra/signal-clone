@@ -1,11 +1,15 @@
 """One function per client event. Parsing and error reporting live here; the work is in the dispatcher."""
 
+import logging
+
 from pydantic import ValidationError
 
 from app.errors import AppError
 from app.realtime import events
 from app.realtime.hub import Connection
 from app.realtime.runtime import Realtime
+
+log = logging.getLogger(__name__)
 
 
 async def handle(rt: Realtime, conn: Connection, raw: object) -> None:
@@ -31,6 +35,10 @@ async def handle(rt: Realtime, conn: Connection, raw: object) -> None:
             await conn.send(events.error("invalid_event", "Already authenticated"))
     except AppError as exc:
         await conn.send(events.error_from(exc, getattr(event, "client_id", None)))
+    except Exception:
+        # A bug in one event must not drop the user's connection (and with it, their other chats).
+        log.exception("unhandled error in %s handler", event.type)
+        await conn.send(events.error("internal", "Something went wrong", getattr(event, "client_id", None)))
 
 
 def _first_problem(exc: ValidationError) -> str:

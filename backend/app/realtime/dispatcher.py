@@ -4,6 +4,7 @@ The same methods serve WebSocket events and REST endpoints, so a message sent ei
 reaches everyone the same way (D-28).
 """
 
+import logging
 import sqlite3
 from collections import defaultdict
 from pathlib import Path
@@ -15,6 +16,8 @@ from app.db.connection import get_connection
 from app.realtime import events
 from app.realtime.hub import Connection, Hub
 from app.services import membership, messages
+
+log = logging.getLogger(__name__)
 
 
 class Dispatcher:
@@ -37,14 +40,34 @@ class Dispatcher:
         finally:
             conn.close()
 
+    @staticmethod
+    async def _best_effort(push) -> None:
+        """Pushes happen AFTER the write is committed. If one fails, the data is still correct and
+        clients re-fetch on reconnect, so log it instead of turning a successful write into an error
+        (which would make the caller retry something that already worked)."""
+        try:
+            await push
+        except Exception:
+            log.exception("push failed after a committed write")
+
     # --- sending -----------------------------------------------------------------
 
     async def send_message(self, conn: Connection, conversation_id: int, client_id: str, body: str) -> None:
         message, created = await self.db(messages.create_message, conversation_id, conn.user_id, client_id, body)
         # Ack first: the sender's bubble moves from "sending" to "sent" without waiting for fan-out.
         await conn.send(events.ack(client_id, message))
+        await self._best_effort(self.publish_stored(message, created, origin=conn))
+
+    async def send_message_rest(self, user_id: int, conversation_id: int, client_id: str,
+                                body: str) -> tuple[dict, bool]:
+        """Same as send_message for a REST caller: no socket to ack, but everyone else is pushed to."""
+        message, created = await self.db(messages.create_message, conversation_id, user_id, client_id, body)
+        await self._best_effort(self.publish_stored(message, created))
+        return message, created
+
+    async def publish_stored(self, message: dict, created: bool, origin: Connection | None = None) -> None:
         if created:
-            await self.publish_new_message(message, origin=conn)
+            await self.publish_new_message(message, origin=origin)
         else:
             # A resend of a stored message. The first attempt may have died between "stored" and
             # "pushed" (crash, cancelled task), so push to whoever is still waiting. Recipients who
@@ -97,7 +120,7 @@ class Dispatcher:
         """Mark messages read and tell their senders. Returns how many changed."""
         now = clock.now_ms()
         changed = await self.db(messages.mark_read, conversation_id, user_id, up_to_message_id, now)
-        await self.publish_read(conn, user_id, conversation_id, up_to_message_id, changed, now)
+        await self._best_effort(self.publish_read(conn, user_id, conversation_id, up_to_message_id, changed, now))
         return len(changed)
 
     async def publish_read(self, origin: Connection | None, reader_id: int, conversation_id: int,
@@ -113,3 +136,13 @@ class Dispatcher:
         # The reader's other tabs clear their unread badge.
         await self.hub.send_to_users([reader_id], events.read_sync(conversation_id, up_to_message_id),
                                      exclude=origin)
+
+    # --- groups --------------------------------------------------------------------
+
+    async def conversation_changed(self, conversation_id: int, also_notify: list[int] = ()) -> None:
+        """Membership, roles or the timeline changed: tell every current member (plus anyone who
+        just lost access, who is no longer a member but must learn it) to re-fetch the chat."""
+        async def push() -> None:
+            members = await self.db(membership.active_member_ids, conversation_id)
+            await self.hub.send_to_users([*members, *also_notify], events.conversation_updated(conversation_id))
+        await self._best_effort(push())
