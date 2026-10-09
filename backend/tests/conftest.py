@@ -29,6 +29,22 @@ def alice(client):
     return login(client, ALICE)
 
 
+def chats(client, headers):
+    """The chat list keyed by title, e.g. chats(...)["Book Club"]."""
+    return {c["title"]: c for c in client.get("/conversations", headers=headers).json()}
+
+
+def user_id(client, headers, phone):
+    return client.get("/users/lookup", params={"query": phone}, headers=headers).json()["id"]
+
+
 @pytest.fixture
-def bob(client):
-    return login(client, BOB)
+def ticking_clock(monkeypatch):
+    """Every now_ms() call returns a later time, so 'before' and 'after' never share a millisecond."""
+    from app import clock
+    t = {"now": clock.now_ms()}
+
+    def tick():
+        t["now"] += 1
+        return t["now"]
+    monkeypatch.setattr(clock, "now_ms", tick)

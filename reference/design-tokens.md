@@ -480,3 +480,6 @@ the icon alone. The words above appear only in the message **Info** (detail) vie
 | `icu:Stories__list-empty` | No recent stories to show right now |
 | `icu:themeLight` / `icu:themeDark` / `icu:themeSystem` | Light / Dark / System |
 | `icu:Preferences--theme` | Theme |
+
+## Limits (non-visual)
+- Group name max length: 32 characters. Source: Signal-Desktop `ts/components/GroupTitleInput.dom.tsx` (`maxLengthCount={32}`).
