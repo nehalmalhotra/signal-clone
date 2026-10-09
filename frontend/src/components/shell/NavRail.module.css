@@ -82,6 +82,25 @@
   height: 20px;
 }
 
+/* design-tokens §4/§7.3 nav unread badge: 16px tall, min-width 16px, 10px text, destructive bg. */
+.unreadBadge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  display: flex;
+  height: 16px;
+  min-width: 16px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--label-destructive);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
 .spacer {
   flex: 1;
 }

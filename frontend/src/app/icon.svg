@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Original line art, redrawn (not traced) from the empty-pane speech-bubble mark used
+       elsewhere in this app (see components/icons/BrandMarks.tsx). Never Signal's own icon file. -->
+  <rect width="32" height="32" rx="8" fill="#4655ff" />
+  <path d="M8 11c0-2.2 1.8-4 4-4h8c2.2 0 4 1.8 4 4v5c0 2.2-1.8 4-4 4h-6.2L9 23.5V20.6c-.6-.7-1-1.6-1-2.6z" fill="#fff" />
+</svg>

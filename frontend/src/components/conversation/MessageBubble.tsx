@@ -14,6 +14,8 @@ interface Props {
   showMeta: boolean;
   /** Sender's display name, shown above the bubble body on incoming group messages only. */
   senderName?: string;
+  /** That sender's own avatar color (fg hex), like Signal's distinct per-member name colors. */
+  senderColor?: string;
 }
 
 /** design-tokens §3/§8.1: 18px radius, 4px on the sender-side corner touching a grouped
@@ -31,7 +33,7 @@ function bubbleRadius(mine: boolean, collapsedAbove: boolean, collapsedBelow: bo
     : `${topSender}px ${topOther}px ${bottomOther}px ${bottomSender}px`;
 }
 
-export function MessageBubble({ message, mine, collapsedAbove, collapsedBelow, showMeta, senderName }: Props) {
+export function MessageBubble({ message, mine, collapsedAbove, collapsedBelow, showMeta, senderName, senderColor }: Props) {
   const failed = message.status === "error";
   const marginTop = collapsedAbove ? 1 : 6;
   const marginBottom = collapsedBelow ? 1 : 6;
@@ -54,7 +56,11 @@ export function MessageBubble({ message, mine, collapsedAbove, collapsedBelow, s
           className={`${styles.bubble} ${mine ? styles.bubbleOutgoing : styles.bubbleIncoming}`}
           style={{ borderRadius: bubbleRadius(mine, collapsedAbove, collapsedBelow) }}
         >
-          {senderName && !collapsedAbove && <div className={styles.author}>{senderName}</div>}
+          {senderName && !collapsedAbove && (
+            <div className={styles.author} style={senderColor ? { color: senderColor } : undefined}>
+              {senderName}
+            </div>
+          )}
           <div className={styles.body}>{message.body}</div>
           {showMeta && (
             <div className={`${styles.meta} ${mine ? styles.metaOutgoing : styles.metaIncoming}`}>

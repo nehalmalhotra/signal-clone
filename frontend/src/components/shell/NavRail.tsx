@@ -5,6 +5,7 @@ import { useState } from "react";
 import styles from "./NavRail.module.css";
 import { Avatar } from "@/components/ui/Avatar";
 import { fullName } from "@/lib/names";
+import { useChats } from "@/store/chats";
 import { useSession } from "@/store/session";
 
 export type RailTab = "chats" | "calls" | "stories" | "settings";
@@ -25,6 +26,9 @@ const TABS: { id: RailTab; label: string; icon: typeof MessageCircle }[] = [
 
 export function NavRail({ active, onSelect, onOpenProfileMenu }: Props) {
   const me = useSession((s) => s.me);
+  // Live-updating: any store write that changes a conversation's unread_count (applyMessage,
+  // clearUnread, load) re-renders this through the same selector.
+  const totalUnread = useChats((s) => s.conversations.reduce((sum, c) => sum + c.unread_count, 0));
   // The hamburger at the top of reference/nav-rail.png is Signal's "Hide Tabs / Show Tabs"
   // toggle (design-tokens §6.1). Real Signal hides the whole rail with no on-screen way back
   // (it relies on a keyboard shortcut, which is Phase 7's job); narrowing to just the toggle
@@ -55,6 +59,9 @@ export function NavRail({ active, onSelect, onOpenProfileMenu }: Props) {
               >
                 <span className={`${styles.itemButton} focus-ring`}>
                   <Icon aria-hidden />
+                  {id === "chats" && totalUnread > 0 && (
+                    <span className={styles.unreadBadge}>{totalUnread > 99 ? "99+" : totalUnread}</span>
+                  )}
                 </span>
                 <span className="sr-only">{label}</span>
               </button>

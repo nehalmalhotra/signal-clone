@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import styles from "./Modal.module.css";
 
 interface Props {
@@ -13,6 +13,8 @@ interface Props {
 
 /** Signal's legacy modal (design-tokens §7.9). Escape or a click on the backdrop closes it. */
 export function Modal({ title, children, footer, onClose }: Props) {
+  const footerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -20,6 +22,14 @@ export function Modal({ title, children, footer, onClose }: Props) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  useEffect(() => {
+    // The primary action is the last button in the footer (e.g. PhoneConfirmModal's "Yes"),
+    // matching reading order (secondary actions like "Edit"/"Cancel" come first). Focusing it
+    // means a focused button's own default behaviour handles Enter-to-confirm for free.
+    const buttons = footerRef.current?.querySelectorAll("button");
+    buttons?.[buttons.length - 1]?.focus();
+  }, []);
 
   return (
     <div className={styles.backdrop} onMouseDown={onClose}>
@@ -40,7 +50,11 @@ export function Modal({ title, children, footer, onClose }: Props) {
           </div>
         )}
         <div className={`${styles.body} ${title ? "" : styles.bodyNoHeader}`}>{children}</div>
-        {footer && <div className={styles.footer}>{footer}</div>}
+        {footer && (
+          <div className={styles.footer} ref={footerRef}>
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { Composer } from "./Composer";
 import { RemovedBanner } from "./RemovedBanner";
 import { Timeline } from "./Timeline";
 import { useMarkRead } from "@/hooks/useMarkRead";
+import { avatarColors } from "@/lib/avatarColors";
 import { conversationsApi } from "@/lib/endpoints";
 import { fullName } from "@/lib/names";
 import { computeUnreadAnchor } from "@/lib/timeline";
@@ -64,6 +65,16 @@ export function ConversationView({ conversation }: { conversation: ConversationS
     [members, myId]
   );
 
+  // Each member's own avatar_color (already assigned per-user, same palette as their avatar) is
+  // reused as their sender-name color in group bubbles, like Signal's per-member name colors.
+  const colorOf = useCallback(
+    (userId: number) => {
+      const m = members.find((mm) => mm.user.id === userId);
+      return avatarColors(m?.user.avatar_color ?? "A100").fg;
+    },
+    [members]
+  );
+
   useMarkRead(conversation.id);
 
   const unreadAnchorId = useMemo(
@@ -87,6 +98,7 @@ export function ConversationView({ conversation }: { conversation: ConversationS
         someoneTyping={someoneTyping}
         isGroup={isGroup}
         nameOf={nameOf}
+        colorOf={colorOf}
       />
       {conversation.is_member ? <Composer conversationId={conversation.id} /> : <RemovedBanner />}
     </div>

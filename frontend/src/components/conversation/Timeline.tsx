@@ -23,6 +23,8 @@ interface Props {
   /** Group chats only: id -> display name, for sender-name bubbles and group_update lines. */
   isGroup?: boolean;
   nameOf?: (userId: number) => string;
+  /** Group chats only: each member's own avatar_color, reused as their sender-name color. */
+  colorOf?: (userId: number) => string;
 }
 
 /** The scrollable message list: day separators, the unread divider, grouped bubbles, and the
@@ -30,7 +32,7 @@ interface Props {
  * jumping the view (useScrollAnchor). */
 export function Timeline({
   items, hasMore, loadingOlder, onLoadOlder, myId, unreadDividerBeforeId, unreadCount, someoneTyping,
-  isGroup, nameOf,
+  isGroup, nameOf, colorOf,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -85,6 +87,7 @@ export function Timeline({
             collapsedBelow={item.collapsedBelow}
             showMeta={item.showMeta}
             senderName={isGroup && !mine && nameOf ? nameOf(item.message.sender_id) : undefined}
+            senderColor={isGroup && !mine && colorOf ? colorOf(item.message.sender_id) : undefined}
           />
         );
       })}
