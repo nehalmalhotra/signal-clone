@@ -9,10 +9,19 @@ def token_of(headers: dict) -> str:
 
 @contextmanager
 def socket(client, headers):
-    """An authenticated socket; the `ready` frame has already been consumed."""
+    """An authenticated socket whose connect handling has fully finished.
+
+    `ready` is sent BEFORE presence and delivery catch-up run, but the server only starts reading
+    this socket's frames afterwards, so a ping/pong round trip proves they are done. Without it,
+    a test's first message could race the connect-time catch-up (which marks waiting messages
+    delivered).
+    """
     with client.websocket_connect("/ws") as ws:
         ws.send_json({"type": "auth", "token": token_of(headers)})
-        assert ws.receive_json()["type"] == "ready"
+        ready = ws.receive_json()
+        assert ready["type"] == "ready"
+        ws.ready = ready  # tests that care about the snapshot read it from here
+        drain(ws)  # defined below; waits for the pong
         yield ws
 
 

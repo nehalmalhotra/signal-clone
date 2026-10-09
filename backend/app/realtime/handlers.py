@@ -22,7 +22,10 @@ async def handle(rt: Realtime, conn: Connection, raw: object) -> None:
             await rt.dispatcher.send_message(conn, event.conversation_id, event.client_id, event.body)
         elif isinstance(event, events.ReadEvent):
             await rt.dispatcher.mark_read(conn, conn.user_id, event.conversation_id, event.up_to_message_id)
+        elif isinstance(event, events.TypingEvent):
+            await rt.typing.handle(conn, event.conversation_id, event.typing)
         elif isinstance(event, events.PingEvent):
+            await rt.presence.touch(conn)
             await conn.send(events.pong())
         else:  # AuthEvent after the handshake
             await conn.send(events.error("invalid_event", "Already authenticated"))

@@ -43,8 +43,10 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
     except asyncio.TimeoutError:
         await websocket.close(CLOSE_TIMEOUT, "Idle")
     finally:
-        # Always runs, so a dropped tab can never leave its user stuck "online".
-        await rt.disconnected(conn)
+        # Always runs, so a dropped tab can never leave its user stuck "online". Shielded: if this
+        # task is cancelled (server shutdown, a test client closing), the cleanup still finishes
+        # as its own task instead of stopping halfway and skipping the offline/last_seen update.
+        await asyncio.shield(rt.disconnected(conn))
 
 
 async def _authenticate(websocket: WebSocket, rt: Realtime):

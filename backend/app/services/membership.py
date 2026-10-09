@@ -57,3 +57,9 @@ def active_member_ids(conn: sqlite3.Connection, conv_id: int) -> list[int]:
     return [r["user_id"] for r in conn.execute(
         "SELECT user_id FROM membership_periods WHERE conversation_id = ? AND left_at IS NULL",
         (conv_id,))]
+
+
+def other_active_member_ids(conn: sqlite3.Connection, conv_id: int, user_id: int) -> list[int]:
+    """Everyone else currently in the chat; raises unless `user_id` is an active member themselves."""
+    require_active_member(conn, conv_id, user_id)
+    return [uid for uid in active_member_ids(conn, conv_id) if uid != user_id]

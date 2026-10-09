@@ -130,3 +130,16 @@ def _peers(conn: sqlite3.Connection, direct_ids: list[int], user_id: int) -> dic
         (*direct_ids, user_id),
     ).fetchall()
     return {r["conversation_id"]: r for r in rows}
+
+
+def direct_peer_ids(conn: sqlite3.Connection, user_id: int) -> list[int]:
+    """The people this user has a 1:1 chat with. They are the audience for presence: Signal has no
+    "online" indicator at all, and the spec's mocked one belongs to the chat list's 1:1 rows (D-12)."""
+    return [r["user_id"] for r in conn.execute(
+        """SELECT other.user_id
+           FROM membership_periods me
+           JOIN conversations c ON c.id = me.conversation_id AND c.type = 'direct'
+           JOIN membership_periods other ON other.conversation_id = c.id
+                                        AND other.user_id <> me.user_id AND other.left_at IS NULL
+           WHERE me.user_id = ? AND me.left_at IS NULL""",
+        (user_id,))]
