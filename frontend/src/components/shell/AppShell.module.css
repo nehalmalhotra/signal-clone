@@ -1,0 +1,12 @@
+.shell {
+  position: relative;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.right {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}

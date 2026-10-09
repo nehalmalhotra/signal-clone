@@ -1,0 +1,52 @@
+/* §4, §7.5 */
+.header {
+  flex-shrink: 0;
+  padding: 15px 11px 8px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 10px;
+}
+
+.title {
+  font-size: 18px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.filterButton {
+  display: flex;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: var(--fill-primary);
+  color: var(--label-primary);
+}
+
+.filterButton.active {
+  background: var(--fill-accent);
+  color: var(--label-oncolor);
+}
+
+.filterButton svg {
+  width: 16px;
+  height: 16px;
+}

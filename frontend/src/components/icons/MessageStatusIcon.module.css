@@ -1,0 +1,18 @@
+.icon {
+  display: inline-block;
+  color: var(--row-status-icon);
+}
+
+.oncolor {
+  color: rgb(255 255 255 / 80%);
+}
+
+.spin {
+  animation: spin 4s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

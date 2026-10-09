@@ -1,0 +1,29 @@
+.field {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: 0.5px solid var(--border-primary);
+  border-radius: 9px;
+  background: var(--fill-control);
+  box-shadow: var(--shadow-elevation-0);
+}
+
+/* The ring sits on the box, not the <input>, so the leading slot is inside it. */
+.field:has(.input:focus-visible) {
+  box-shadow: 0 0 0 1.5px var(--focus-inner), 0 0 0 4px var(--focus-outer);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: none;
+  outline: none;
+  background: none;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.input::placeholder {
+  color: var(--label-placeholder);
+}
