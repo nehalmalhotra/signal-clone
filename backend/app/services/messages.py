@@ -122,21 +122,68 @@ def add_group_update(conn: sqlite3.Connection, conv_id: int, actor_id: int, meta
     )
 
 
-def mark_read(conn: sqlite3.Connection, conv_id: int, user_id: int, up_to_id: int) -> list[int]:
-    """Mark the viewer's unread messages up to up_to_id as read. Returns the affected message ids
-    (Phase 3 uses them to tell the senders)."""
+def mark_read(conn: sqlite3.Connection, conv_id: int, user_id: int, up_to_id: int,
+              now: int | None = None) -> list[tuple[int, int]]:
+    """Mark the viewer's unread messages up to up_to_id as read.
+
+    Returns (message_id, sender_id) for every receipt that actually changed, so the caller can
+    tell each sender. A repeat call changes nothing and returns [].
+    """
     membership.require_member(conn, conv_id, user_id)
-    now = clock.now_ms()
+    now = clock.now_ms() if now is None else now
+    # One UPDATE ... RETURNING: no gap between "find unread" and "mark read" for a receipt to slip into.
     with conn:
         ids = [r["message_id"] for r in conn.execute(
-            """SELECT r.message_id FROM message_receipts r JOIN messages m ON m.id = r.message_id
-               WHERE r.recipient_id = ? AND r.status < ? AND m.conversation_id = ? AND m.id <= ?""",
-            (user_id, STATUS_READ, conv_id, up_to_id))]
-        conn.executemany(
-            "UPDATE message_receipts SET status = ?, updated_at = ? WHERE message_id = ? AND recipient_id = ?",
-            [(STATUS_READ, now, mid, user_id) for mid in ids],
-        )
-    return ids
+            """UPDATE message_receipts SET status = ?, updated_at = ?
+               WHERE recipient_id = ? AND status < ?
+                 AND message_id IN (SELECT id FROM messages WHERE conversation_id = ? AND id <= ?)
+               RETURNING message_id""",
+            (STATUS_READ, now, user_id, STATUS_READ, conv_id, up_to_id))]
+    senders = _conversation_and_sender(conn, ids)
+    return [(mid, senders[mid][1]) for mid in sorted(ids)]
+
+
+def mark_delivered(conn: sqlite3.Connection, message_id: int, recipient_ids: list[int], now: int) -> list[int]:
+    """Server-side "delivered" (D-27): move sent -> delivered for recipients whose socket just got
+    the push. Returns the users actually changed; a second tab's push changes nothing."""
+    if not recipient_ids:
+        return []
+    marks = ",".join("?" * len(recipient_ids))
+    with conn:
+        rows = conn.execute(
+            f"""UPDATE message_receipts SET status = ?, updated_at = ?
+                WHERE message_id = ? AND status = ? AND recipient_id IN ({marks})
+                RETURNING recipient_id""",
+            (STATUS_DELIVERED, now, message_id, STATUS_SENT, *recipient_ids)).fetchall()
+    return [r["recipient_id"] for r in rows]
+
+
+def undelivered_recipient_ids(conn: sqlite3.Connection, message_id: int) -> list[int]:
+    """Recipients whose receipt is still 'sent': nobody has confirmed the push reached them."""
+    return [r["recipient_id"] for r in conn.execute(
+        "SELECT recipient_id FROM message_receipts WHERE message_id = ? AND status = ?",
+        (message_id, STATUS_SENT))]
+
+
+def mark_all_delivered(conn: sqlite3.Connection, user_id: int, now: int) -> list[tuple[int, int, int]]:
+    """A user just connected: everything still 'sent' to them counts as delivered (catch-up).
+    Served by idx_receipts_recipient. Returns (message_id, conversation_id, sender_id)."""
+    with conn:
+        ids = [r["message_id"] for r in conn.execute(
+            """UPDATE message_receipts SET status = ?, updated_at = ?
+               WHERE recipient_id = ? AND status = ? RETURNING message_id""",
+            (STATUS_DELIVERED, now, user_id, STATUS_SENT))]
+    origin = _conversation_and_sender(conn, ids)
+    return [(mid, origin[mid][0], origin[mid][1]) for mid in sorted(ids)]
+
+
+def _conversation_and_sender(conn: sqlite3.Connection, message_ids: list[int]) -> dict[int, tuple[int, int]]:
+    if not message_ids:
+        return {}
+    marks = ",".join("?" * len(message_ids))
+    rows = conn.execute(f"SELECT id, conversation_id, sender_id FROM messages WHERE id IN ({marks})",
+                        message_ids).fetchall()
+    return {r["id"]: (r["conversation_id"], r["sender_id"]) for r in rows}
 
 
 def receipts_for(conn: sqlite3.Connection, message_id: int, viewer_id: int) -> list[dict]:
